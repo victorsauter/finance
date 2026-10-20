@@ -11,12 +11,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        # Replace this before applying the production overlay.
-        - finance.example.com
+        - finance.victorsauter.com
       secretName: finance-tls
   rules:
-    # Replace this before applying the production overlay.
-    - host: finance.example.com
+    - host: finance.victorsauter.com
       http:
         paths:
           - path: /
