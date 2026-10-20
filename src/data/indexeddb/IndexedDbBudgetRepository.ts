@@ -1,7 +1,7 @@
 import type { BudgetRepository } from '../BudgetRepository'
 import type { AppData } from '../../domain/budget/models'
 import { parseAppData } from '../../domain/budget/schema'
-import { BudgetDatabase } from './database'
+import { BudgetDatabase, LEGACY_DATABASE_NAME } from './database'
 
 export class IndexedDbBudgetRepository implements BudgetRepository {
   private readonly database: BudgetDatabase
@@ -26,5 +26,16 @@ export class IndexedDbBudgetRepository implements BudgetRepository {
 
   close(): void {
     this.database.close()
+  }
+}
+
+export async function loadLegacyBudgetData(): Promise<AppData | null> {
+  const legacyRepository = new IndexedDbBudgetRepository(
+    new BudgetDatabase(LEGACY_DATABASE_NAME),
+  )
+  try {
+    return await legacyRepository.load()
+  } finally {
+    legacyRepository.close()
   }
 }

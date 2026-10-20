@@ -10,7 +10,7 @@ describe('budget factories', () => {
   it('creates schema-valid initial data', () => {
     const data = createInitialAppData(new Date(2026, 8, 1))
     expect(parseAppData(data)).toEqual(data)
-    expect(data.budgetMonths[0]!.name).toBe('Septembre 2026')
+    expect(data.budgetMonths[0]!.name).toBe('September 2026')
   })
 
   it('migrates version 1 backups without imported transactions', () => {
@@ -35,7 +35,7 @@ describe('budget factories', () => {
     expect(clone.incomes[0]!.id).not.toBe(source.incomes[0]!.id)
     expect(clone.accounts[0]!.id).not.toBe(source.accounts[0]!.id)
     expect(clone.expenseCategories[0]!.accountId).toBe(clone.accounts[0]!.id)
-    expect(clone.name).toBe('Octobre 2026')
+    expect(clone.name).toBe('October 2026')
   })
 
   it('rejects backups with broken account references', () => {
@@ -44,7 +44,7 @@ describe('budget factories', () => {
       crypto.randomUUID()
 
     expect(() => parseAppData(data)).toThrow(
-      'Le compte affecté à cette catégorie est introuvable.',
+      'The account assigned to this category cannot be found.',
     )
   })
 
@@ -53,7 +53,7 @@ describe('budget factories', () => {
     data.settings.activeBudgetMonthId = crypto.randomUUID()
 
     expect(() => parseAppData(data)).toThrow(
-      'Le budget actif ne correspond à aucun mois.',
+      'The active budget does not match any month.',
     )
   })
 })

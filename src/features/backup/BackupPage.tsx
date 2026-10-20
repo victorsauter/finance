@@ -24,9 +24,9 @@ export function BackupPage() {
 
   const exportBackup = () => {
     const date = new Date().toISOString().slice(0, 10)
-    downloadJson(`mon-budget-${date}.json`, data)
+    downloadJson(`finance-${date}.json`, data)
     setIsError(false)
-    setMessage('La sauvegarde JSON a été téléchargée.')
+    setMessage('The JSON backup has been downloaded.')
   }
 
   const importBackup = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +40,7 @@ export function BackupPage() {
       const transactionCount = parsed.importedTransactions.length
       if (
         !window.confirm(
-          `Remplacer les données actuelles par ${budgetCount} budget(s) et ${transactionCount} opération(s) provenant de « ${file.name} » ?`,
+          `Replace current data with ${budgetCount} budget(s) and ${transactionCount} transaction(s) from “${file.name}”?`,
         )
       ) {
         return
@@ -48,14 +48,14 @@ export function BackupPage() {
       await replaceData(parsed)
       setIsError(false)
       setMessage(
-        `${budgetCount} budget(s) et ${transactionCount} opération(s) ont été restaurés.`,
+        `${budgetCount} budget(s) and ${transactionCount} transaction(s) have been restored.`,
       )
     } catch (importError) {
       setIsError(true)
       setMessage(
         importError instanceof Error
-          ? `Sauvegarde invalide : ${importError.message}`
-          : 'Ce fichier ne contient pas une sauvegarde valide.',
+          ? `Invalid backup: ${importError.message}`
+          : 'This file does not contain a valid backup.',
       )
     }
   }
@@ -63,30 +63,29 @@ export function BackupPage() {
   const reset = async () => {
     if (
       !window.confirm(
-        'Effacer tous les budgets locaux et recréer un mois vide ? Exportez une sauvegarde avant de continuer.',
+        'Delete all local budgets and create an empty month? Export a backup before continuing.',
       )
     ) {
       return
     }
     await resetData()
     setIsError(false)
-    setMessage('Les données locales ont été réinitialisées.')
+    setMessage('Local data has been reset.')
   }
 
   return (
     <main className="content-page narrow-page">
       <div className="page-intro">
-        <p className="eyebrow">Données locales</p>
+          <p className="eyebrow">Local data</p>
         <div className="page-title-with-icon">
           <span aria-hidden="true">
             <ShieldCheck size={22} />
           </span>
-          <h1>Sauvegarde et restauration</h1>
+          <h1>Backup and restore</h1>
         </div>
         <p>
-          Votre budget reste dans ce navigateur. Conservez régulièrement une
-          copie JSON, notamment sur iPhone où le système peut libérer le
-          stockage d’un site inutilisé.
+          Your budget stays in this browser. Keep a JSON backup regularly,
+          especially on iPhone, where the system can clear unused site storage.
         </p>
       </div>
 
@@ -105,17 +104,17 @@ export function BackupPage() {
           <Download size={20} />
         </span>
         <div className="settings-copy">
-          <p className="eyebrow">Exporter</p>
-          <h2>Télécharger une copie</h2>
+          <p className="eyebrow">Export</p>
+          <h2>Download a copy</h2>
           <p>
-            La sauvegarde contient {data.budgetMonths.length} budget(s) et{' '}
-            {data.importedTransactions.length} opération(s), au format de
-            données version {CURRENT_SCHEMA_VERSION}.
+            This backup contains {data.budgetMonths.length} budget(s) and{' '}
+            {data.importedTransactions.length} transaction(s), using data
+            format version {CURRENT_SCHEMA_VERSION}.
           </p>
         </div>
         <button type="button" className="primary-button" onClick={exportBackup}>
           <Download aria-hidden="true" size={17} />
-          Télécharger le JSON
+          Download JSON
         </button>
       </section>
 
@@ -124,11 +123,10 @@ export function BackupPage() {
           <FileUp size={20} />
         </span>
         <div className="settings-copy">
-          <p className="eyebrow">Restaurer</p>
-          <h2>Importer une sauvegarde</h2>
+          <p className="eyebrow">Restore</p>
+          <h2>Import a backup</h2>
           <p>
-            Le fichier est entièrement vérifié avant de remplacer les données
-            locales.
+            The file is fully validated before it replaces local data.
           </p>
         </div>
         <input
@@ -144,7 +142,7 @@ export function BackupPage() {
           onClick={() => inputRef.current?.click()}
         >
           <FileUp aria-hidden="true" size={17} />
-          Choisir un fichier
+          Choose a file
         </button>
       </section>
       </div>
@@ -154,16 +152,16 @@ export function BackupPage() {
           <Trash2 size={20} />
         </span>
         <div className="settings-copy">
-          <p className="eyebrow">Zone sensible</p>
-          <h2>Réinitialiser l’application</h2>
+          <p className="eyebrow">Danger zone</p>
+          <h2>Reset the app</h2>
           <p>
-            Tous les budgets et toutes les opérations importées de cet appareil
-            seront remplacés par un mois vide.
+            All budgets and imported transactions on this device will be
+            replaced with an empty month.
           </p>
         </div>
         <button type="button" className="danger-button" onClick={() => void reset()}>
           <Trash2 aria-hidden="true" size={17} />
-          Tout réinitialiser
+          Reset everything
         </button>
       </section>
     </main>

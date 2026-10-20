@@ -8,6 +8,7 @@ import {
 import {
   DARK_MODE_QUERY,
   isThemePreference,
+  LEGACY_THEME_STORAGE_KEY,
   resolveTheme,
   THEME_STORAGE_KEY,
   type ThemePreference,
@@ -16,10 +17,12 @@ import { ThemeContext, type ThemeContextValue } from './theme-context'
 
 function readStoredPreference(): ThemePreference {
   try {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+    const stored =
+      window.localStorage.getItem(THEME_STORAGE_KEY) ??
+      window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
     return isThemePreference(stored) ? stored : 'system'
   } catch (error) {
-    console.warn('La préférence de thème locale est inaccessible.', error)
+    console.warn('The local theme preference is unavailable.', error)
     return 'system'
   }
 }
@@ -67,7 +70,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           window.localStorage.setItem(THEME_STORAGE_KEY, nextPreference)
         } catch (error) {
           console.error(
-            'Impossible d’enregistrer la préférence de thème.',
+            'Unable to save the theme preference.',
             error,
           )
         }

@@ -16,7 +16,7 @@ function renderApp() {
 beforeEach(async () => {
   window.history.replaceState({}, '', '/')
   window.localStorage.clear()
-  await Dexie.delete('mon-budget')
+  await Dexie.delete('finance')
 })
 
 afterEach(() => {
@@ -29,7 +29,7 @@ describe('budget application', () => {
     renderApp()
 
     expect(
-      await screen.findByRole('heading', { name: 'Construire le mois' }),
+      await screen.findByRole('heading', { name: 'Build your month' }),
     ).toBeInTheDocument()
     expect(
       screen.queryByText(/DatabaseClosedError/),
@@ -41,72 +41,72 @@ describe('budget application', () => {
     renderApp()
 
     expect(
-      await screen.findByRole('heading', { name: 'Construire le mois' }),
+      await screen.findByRole('heading', { name: 'Build your month' }),
     ).toBeInTheDocument()
 
-    const incomeInput = screen.getByLabelText('Montant de Revenu principal')
+    const incomeInput = screen.getByLabelText('Amount for Main income')
     await user.clear(incomeInput)
     await user.type(incomeInput, '3000,50')
     await user.tab()
 
-    const summary = screen.getByRole('region', { name: 'Résumé du budget' })
-    const incomeCard = within(summary).getByText('Revenus').closest('article')
+    const summary = screen.getByRole('region', { name: 'Budget summary' })
+    const incomeCard = within(summary).getByText('Income').closest('article')
     expect(incomeCard).not.toBeNull()
-    expect(incomeCard).toHaveTextContent('3 000,50 €')
+    expect(incomeCard).toHaveTextContent('€3,000.50')
     await waitFor(() =>
-      expect(screen.getByText('Enregistré localement')).toBeInTheDocument(),
+      expect(screen.getByText('Saved locally')).toBeInTheDocument(),
     )
   })
 
   it('opens the backup screen from the main navigation', async () => {
     const user = userEvent.setup()
     renderApp()
-    await screen.findByRole('heading', { name: 'Construire le mois' })
+    await screen.findByRole('heading', { name: 'Build your month' })
 
     const navigation = screen.getByRole('navigation', {
-      name: 'Navigation principale',
+      name: 'Main navigation',
     })
-    await user.click(within(navigation).getByRole('link', { name: 'Sauvegarde' }))
+    await user.click(within(navigation).getByRole('link', { name: 'Backup' }))
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Sauvegarde et restauration',
+        name: 'Backup and restore',
       }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Télécharger le JSON' }),
+      screen.getByRole('button', { name: 'Download JSON' }),
     ).toBeInTheDocument()
   })
 
   it('persists a manual dark appearance', async () => {
     const user = userEvent.setup()
     renderApp()
-    await screen.findByRole('heading', { name: 'Construire le mois' })
+    await screen.findByRole('heading', { name: 'Build your month' })
 
     const appearance = screen.getAllByRole('group', {
-      name: 'Apparence',
+      name: 'Appearance',
     })[0]!
     await user.click(
-      within(appearance).getByRole('button', { name: 'Thème sombre' }),
+      within(appearance).getByRole('button', { name: 'Dark theme' }),
     )
 
     expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(window.localStorage.getItem('mon-budget-theme')).toBe('dark')
+    expect(window.localStorage.getItem('finance-theme')).toBe('dark')
   })
 
   it('previews, imports, classifies, and deduplicates a Revolut CSV', async () => {
     const user = userEvent.setup()
     renderApp()
-    await screen.findByRole('heading', { name: 'Construire le mois' })
+    await screen.findByRole('heading', { name: 'Build your month' })
 
     const navigation = screen.getByRole('navigation', {
-      name: 'Navigation principale',
+      name: 'Main navigation',
     })
     await user.click(
-      within(navigation).getByRole('link', { name: 'Opérations' }),
+      within(navigation).getByRole('link', { name: 'Transactions' }),
     )
     expect(
-      await screen.findByRole('heading', { name: 'Opérations Revolut' }),
+      await screen.findByRole('heading', { name: 'Revolut transactions' }),
     ).toBeInTheDocument()
 
     const now = new Date()
@@ -120,32 +120,32 @@ describe('budget application', () => {
     ].join('\n')
     const file = new File([csv], 'revolut.csv', { type: 'text/csv' })
 
-    await user.upload(screen.getByLabelText('Fichier CSV Revolut'), file)
+    await user.upload(screen.getByLabelText('Revolut CSV file'), file)
     const importButton = await screen.findByRole('button', {
-      name: 'Importer 2 opérations',
+      name: 'Import 2 transactions',
     })
     expect(screen.getByText('1', { selector: '.import-stats strong' })).toBeInTheDocument()
     await user.click(importButton)
 
     expect(await screen.findByText('Supermarché')).toBeInTheDocument()
     const expenseSummary = screen
-      .getByText('Dépenses réelles', { selector: 'span' })
+      .getByText('Actual expenses', { selector: 'span' })
       .closest('article')
-    expect(expenseSummary).toHaveTextContent('42,50 €')
+    expect(expenseSummary).toHaveTextContent('€42.50')
 
-    const categorySelect = screen.getByLabelText('Catégorie de Supermarché')
+    const categorySelect = screen.getByLabelText('Category for Supermarché')
     await user.selectOptions(
       categorySelect,
-      within(categorySelect).getByRole('option', { name: 'Logement' }),
+      within(categorySelect).getByRole('option', { name: 'Housing' }),
     )
     await waitFor(() =>
-      expect(screen.getByText('Enregistré localement')).toBeInTheDocument(),
+      expect(screen.getByText('Saved locally')).toBeInTheDocument(),
     )
 
-    await user.upload(screen.getByLabelText('Fichier CSV Revolut'), file)
+    await user.upload(screen.getByLabelText('Revolut CSV file'), file)
     expect(
       await screen.findByRole('button', {
-        name: 'Importer 0 opérations',
+        name: 'Import 0 transactions',
       }),
     ).toBeDisabled()
   })

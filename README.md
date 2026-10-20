@@ -1,6 +1,6 @@
-# Mon Budget
+# Finance
 
-A French-language, local-first budget planner built with React, TypeScript and
+A English-language, local-first budget planner built with React, TypeScript and
 Vite. The installable PWA works offline and stores data on the current device.
 
 ## Features
@@ -54,16 +54,23 @@ Safari/WebKit test.
 
 Build with `npm run build` and serve `dist` over HTTPS. The current configuration
 expects an origin-root deployment, not a repository subpath. Configure the host
-to return `index.html` for application routes such as `/operations` and
-`/sauvegarde`. Localhost can be used without HTTPS for development.
+to return `index.html` for application routes such as `/transactions` and
+`/backup`. Localhost can be used without HTTPS for development.
 
 On iPhone, open the site in Safari and choose **Share > Add to Home Screen**.
 On desktop Chromium, use the browser's install action. Open the application online
 once so its service worker can cache the application shell before offline use.
 
+## Kubernetes
+
+The repository includes a production Docker image, an Nginx configuration for
+client-side routes, and Kustomize manifests under `k8s/`. See
+[`DEPLOYMENT.md`](./DEPLOYMENT.md) for the prerequisite infrastructure and safe
+deployment sequence. Never commit a kubeconfig or any Kubernetes secret.
+
 ## Revolut CSV import
 
-Open **Operations** (`Opérations` in the UI), select a CSV statement, review the
+Open **Transactions**, select a CSV statement, review the
 preview and confirm the import. Assign expense categories or correct the
 expense, income and transfer classification afterward.
 
@@ -86,7 +93,7 @@ Budgets, imported transactions and classification are stored in IndexedDB.
 Theme preferences are stored separately in local storage. Clearing site data,
 changing browser or changing the site's origin does not transfer these records.
 Browsers, especially iOS, may evict local data: export JSON backups regularly
-using the **Backup** (`Sauvegarde`) page and keep them outside the browser.
+using the **Backup** page and keep them outside the browser.
 
 Restore validates the document version, identifiers and references before showing
 a preview. Existing data is replaced only after confirmation. Version 1 budget

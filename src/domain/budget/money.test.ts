@@ -14,8 +14,8 @@ describe('money helpers', () => {
     expect(parseMoneyInput('abc')).toBeNull()
   })
 
-  it('formats cents as French euros', () => {
-    expect(formatMoney(123456)).toContain('1\u202f234,56')
+  it('formats euros using English conventions', () => {
+    expect(formatMoney(123456)).toContain('1,234.56')
     expect(formatMoney(123456)).toContain('€')
   })
 })

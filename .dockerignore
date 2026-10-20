@@ -1,0 +1,14 @@
+# Keep the build context small and make it impossible to accidentally include
+# local credentials in an image build.
+.git
+.gitignore
+.kube
+*.kubeconfig
+kubeconfig
+node_modules
+dist
+coverage
+playwright-report
+test-results
+*.log
+.DS_Store

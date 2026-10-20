@@ -8,14 +8,14 @@ export function FlowSummary({ model }: { model: CashFlowModel }) {
 
   return (
     <details className="flow-summary">
-      <summary>Afficher le détail accessible des flux</summary>
+      <summary>Show accessible cash flow details</summary>
       <div className="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>Origine</th>
-              <th>Destination</th>
-              <th>Montant</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Amount</th>
             </tr>
           </thead>
           <tbody>

@@ -93,6 +93,6 @@ describe('parseRevolutCsv', () => {
       parseRevolutCsv('Date,Label,Value\n2026-09-01,Coffee,-3', {
         fileName: 'unknown.csv',
       }),
-    ).toThrow('Colonnes Revolut manquantes')
+    ).toThrow('Missing Revolut columns')
   })
 })

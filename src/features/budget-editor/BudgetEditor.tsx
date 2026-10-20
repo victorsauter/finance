@@ -59,7 +59,7 @@ function RowActions({
         type="button"
         className="mini-button"
         disabled={index === 0}
-        aria-label={`Monter ${label}`}
+        aria-label={`Move ${label} up`}
         onClick={() => onMove(-1)}
       >
         <ArrowUp aria-hidden="true" size={15} />
@@ -68,7 +68,7 @@ function RowActions({
         type="button"
         className="mini-button"
         disabled={index === count - 1}
-        aria-label={`Descendre ${label}`}
+        aria-label={`Move ${label} down`}
         onClick={() => onMove(1)}
       >
         <ArrowDown aria-hidden="true" size={15} />
@@ -76,7 +76,7 @@ function RowActions({
       <button
         type="button"
         className="mini-button delete"
-        aria-label={`Supprimer ${label}`}
+        aria-label={`Delete ${label}`}
         onClick={onDelete}
       >
         <Trash2 aria-hidden="true" size={15} />
@@ -94,8 +94,8 @@ export function BudgetEditor() {
     ).length
     const message =
       categoryCount > 0
-        ? `${categoryCount} catégorie(s) utilisent ${name}. Elles deviendront non affectées. Continuer ?`
-        : `Supprimer le compte ${name} ?`
+        ? `${categoryCount} category or categories use ${name}. They will become unassigned. Continue?`
+        : `Delete the ${name} account?`
     if (!window.confirm(message)) return
 
     updateActiveBudget((budget) => {
@@ -113,17 +113,17 @@ export function BudgetEditor() {
     <section className="editor-card" aria-labelledby="editor-title">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Planification</p>
-          <h2 id="editor-title">Construire le mois</h2>
+          <p className="eyebrow">Planning</p>
+          <h2 id="editor-title">Build your month</h2>
         </div>
-        <p className="card-hint">Les modifications sont enregistrées seules.</p>
+        <p className="card-hint">Changes are saved automatically.</p>
       </div>
 
       <div className="editor-section">
         <div className="section-heading">
           <div>
             <span className="section-number">01</span>
-            <h3>Revenus</h3>
+            <h3>Income</h3>
           </div>
           <button
             type="button"
@@ -131,13 +131,13 @@ export function BudgetEditor() {
             onClick={() =>
               updateActiveBudget((budget) => {
                 budget.incomes.push(
-                  createIncome('Nouveau revenu', budget.incomes.length),
+                  createIncome('New income', budget.incomes.length),
                 )
               })
             }
           >
             <Plus aria-hidden="true" size={15} />
-            Ajouter
+            Add
           </button>
         </div>
         <div className="editable-list">
@@ -145,7 +145,7 @@ export function BudgetEditor() {
             <div className="editable-row" key={income.id}>
               <NameInput
                 value={income.name}
-                ariaLabel={`Nom du revenu ${index + 1}`}
+                ariaLabel={`Income name ${index + 1}`}
                 onCommit={(name) =>
                   updateActiveBudget((budget) => {
                     const target = budget.incomes.find(
@@ -157,7 +157,7 @@ export function BudgetEditor() {
               />
               <MoneyInput
                 valueCents={income.amountCents}
-                ariaLabel={`Montant de ${income.name}`}
+                ariaLabel={`Amount for ${income.name}`}
                 onCommit={(amountCents) =>
                   updateActiveBudget((budget) => {
                     const target = budget.incomes.find(
@@ -188,7 +188,7 @@ export function BudgetEditor() {
             </div>
           ))}
           {activeBudget.incomes.length === 0 && (
-            <p className="empty-row">Ajoutez au moins une source de revenus.</p>
+            <p className="empty-row">Add at least one income source.</p>
           )}
         </div>
       </div>
@@ -197,7 +197,7 @@ export function BudgetEditor() {
         <div className="section-heading">
           <div>
             <span className="section-number">02</span>
-            <h3>Comptes et enveloppes</h3>
+            <h3>Accounts and allocations</h3>
           </div>
           <button
             type="button"
@@ -205,24 +205,24 @@ export function BudgetEditor() {
             onClick={() =>
               updateActiveBudget((budget) => {
                 budget.accounts.push(
-                  createAccount('Nouveau compte', budget.accounts.length),
+                  createAccount('New account', budget.accounts.length),
                 )
               })
             }
           >
             <Plus aria-hidden="true" size={15} />
-            Ajouter
+            Add
           </button>
         </div>
         <p className="section-description">
-          Indiquez le virement mensuel prévu vers chaque compte.
+          Set the monthly transfer planned for each account.
         </p>
         <div className="editable-list">
           {activeBudget.accounts.map((account, index) => (
             <div className="editable-row" key={account.id}>
               <NameInput
                 value={account.name}
-                ariaLabel={`Nom du compte ${index + 1}`}
+                ariaLabel={`Account name ${index + 1}`}
                 onCommit={(name) =>
                   updateActiveBudget((budget) => {
                     const target = budget.accounts.find(
@@ -234,7 +234,7 @@ export function BudgetEditor() {
               />
               <MoneyInput
                 valueCents={account.plannedTransferCents}
-                ariaLabel={`Virement vers ${account.name}`}
+                ariaLabel={`Transfer to ${account.name}`}
                 onCommit={(plannedTransferCents) =>
                   updateActiveBudget((budget) => {
                     const target = budget.accounts.find(
@@ -260,7 +260,7 @@ export function BudgetEditor() {
           ))}
           {activeBudget.accounts.length === 0 && (
             <p className="empty-row">
-              Ajoutez un compte pour affecter les dépenses.
+              Add an account to assign expenses.
             </p>
           )}
         </div>
@@ -270,7 +270,7 @@ export function BudgetEditor() {
         <div className="section-heading">
           <div>
             <span className="section-number">03</span>
-            <h3>Dépenses</h3>
+            <h3>Expenses</h3>
           </div>
           <button
             type="button"
@@ -279,7 +279,7 @@ export function BudgetEditor() {
               updateActiveBudget((budget) => {
                 budget.expenseCategories.push(
                   createExpenseCategory(
-                    'Nouvelle catégorie',
+                    'New category',
                     budget.expenseCategories.length,
                     budget.accounts[0]?.id ?? null,
                   ),
@@ -288,7 +288,7 @@ export function BudgetEditor() {
             }
           >
             <Plus aria-hidden="true" size={15} />
-            Catégorie
+            Category
           </button>
         </div>
 
@@ -300,7 +300,7 @@ export function BudgetEditor() {
                   <NameInput
                     value={category.name}
                     className="category-name-input"
-                    ariaLabel={`Nom de la catégorie ${categoryIndex + 1}`}
+                    ariaLabel={`Category name ${categoryIndex + 1}`}
                     onCommit={(name) =>
                       updateActiveBudget((budget) => {
                         const target = budget.expenseCategories.find(
@@ -320,7 +320,7 @@ export function BudgetEditor() {
                   </span>
                 </div>
                 <select
-                  aria-label={`Compte de la catégorie ${category.name}`}
+                  aria-label={`Account for ${category.name}`}
                   value={category.accountId ?? ''}
                   onChange={(event) =>
                     updateActiveBudget((budget) => {
@@ -331,7 +331,7 @@ export function BudgetEditor() {
                     })
                   }
                 >
-                  <option value="">Non affectée</option>
+                  <option value="">Unassigned</option>
                   {activeBudget.accounts.map((account) => (
                     <option key={account.id} value={account.id}>
                       {account.name}
@@ -354,7 +354,7 @@ export function BudgetEditor() {
                   onDelete={() => {
                     if (
                       window.confirm(
-                        `Supprimer ${category.name} et toutes ses dépenses ?`,
+                        `Delete ${category.name} and all its expenses?`,
                       )
                     ) {
                       updateActiveBudget((budget) => {
@@ -374,7 +374,7 @@ export function BudgetEditor() {
                   <div className="editable-row" key={item.id}>
                     <NameInput
                       value={item.name}
-                      ariaLabel={`Nom de la dépense ${itemIndex + 1} dans ${category.name}`}
+                      ariaLabel={`Expense name ${itemIndex + 1} in ${category.name}`}
                       onCommit={(name) =>
                         updateActiveBudget((budget) => {
                           const targetCategory =
@@ -390,7 +390,7 @@ export function BudgetEditor() {
                     />
                     <MoneyInput
                       valueCents={item.amountCents}
-                      ariaLabel={`Montant de ${item.name}`}
+                      ariaLabel={`Amount for ${item.name}`}
                       onCommit={(amountCents) =>
                         updateActiveBudget((budget) => {
                           const targetCategory =
@@ -434,7 +434,7 @@ export function BudgetEditor() {
                 ))}
                 {category.items.length === 0 && (
                   <p className="empty-row">
-                    Aucune dépense dans cette catégorie.
+                    There are no expenses in this category.
                   </p>
                 )}
               </div>
@@ -449,7 +449,7 @@ export function BudgetEditor() {
                     if (target)
                       target.items.push(
                         createExpenseItem(
-                          'Nouvelle dépense',
+                          'New expense',
                           target.items.length,
                         ),
                       )
@@ -457,13 +457,13 @@ export function BudgetEditor() {
                 }
               >
                 <Plus aria-hidden="true" size={15} />
-                Ajouter une dépense
+                Add expense
               </button>
             </article>
           ))}
           {activeBudget.expenseCategories.length === 0 && (
             <p className="empty-state">
-              Créez une catégorie pour commencer à planifier les dépenses.
+              Create a category to start planning expenses.
             </p>
           )}
         </div>

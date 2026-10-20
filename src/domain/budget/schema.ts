@@ -4,7 +4,7 @@ import { CURRENT_SCHEMA_VERSION } from './models'
 const idSchema = z.uuid()
 const centsSchema = z.number().int().nonnegative()
 const signedCentsSchema = z.number().int().refine((value) => value !== 0, {
-  message: 'Le montant de la transaction ne peut pas être nul.',
+  message: 'The transaction amount cannot be zero.',
 })
 const orderedEntitySchema = {
   id: idSchema,
@@ -89,7 +89,7 @@ export const appDataSchema = z.object({
   if (!activeBudgetExists) {
     context.addIssue({
       code: 'custom',
-      message: 'Le budget actif ne correspond à aucun mois.',
+      message: 'The active budget does not match any month.',
       path: ['settings', 'activeBudgetMonthId'],
     })
   }
@@ -101,7 +101,7 @@ export const appDataSchema = z.object({
     if (entityIds.has(id)) {
       context.addIssue({
         code: 'custom',
-        message: 'Cet identifiant est utilisé plusieurs fois.',
+        message: 'This identifier is used more than once.',
         path,
       })
     }
@@ -113,7 +113,7 @@ export const appDataSchema = z.object({
     if (monthKeys.has(monthKey)) {
       context.addIssue({
         code: 'custom',
-        message: 'Deux budgets utilisent le même mois.',
+        message: 'Two budgets use the same month.',
         path: ['budgetMonths', budgetIndex],
       })
     }
@@ -154,7 +154,7 @@ export const appDataSchema = z.object({
       if (category.accountId && !accountIds.has(category.accountId)) {
         context.addIssue({
           code: 'custom',
-          message: 'Le compte affecté à cette catégorie est introuvable.',
+          message: 'The account assigned to this category cannot be found.',
           path: [
             'budgetMonths',
             budgetIndex,
@@ -189,7 +189,7 @@ export const appDataSchema = z.object({
     if (sourceKeys.has(transaction.sourceKey)) {
       context.addIssue({
         code: 'custom',
-        message: 'Cette transaction bancaire est importée plusieurs fois.',
+        message: 'This bank transaction has been imported more than once.',
         path: ['importedTransactions', transactionIndex, 'sourceKey'],
       })
     }
@@ -202,7 +202,7 @@ export const appDataSchema = z.object({
         context.addIssue({
           code: 'custom',
           message:
-            'La catégorie affectée à cette transaction est introuvable pour son mois.',
+            'The category assigned to this transaction cannot be found for its month.',
           path: ['importedTransactions', transactionIndex, 'categoryId'],
         })
       }

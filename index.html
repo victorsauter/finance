@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/budget-icon.svg" />
-    <link rel="apple-touch-icon" href="/budget-icon-192.png" />
+    <link rel="icon" type="image/svg+xml" href="/finance-icon.svg" />
+    <link rel="apple-touch-icon" href="/finance-icon-192.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <meta
       name="description"
-      content="Planifiez votre budget mensuel et visualisez la circulation de votre argent."
+      content="Plan your monthly budget and visualise your cash flow."
     />
     <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Mon Budget" />
+    <meta name="apple-mobile-web-app-title" content="Finance" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
@@ -25,7 +25,9 @@
         const root = document.documentElement
         const media = window.matchMedia('(prefers-color-scheme: dark)')
         try {
-          const stored = window.localStorage.getItem('mon-budget-theme')
+          const stored =
+            window.localStorage.getItem('finance-theme') ??
+            window.localStorage.getItem('mon-budget-theme')
           const preference =
             stored === 'light' || stored === 'dark' || stored === 'system'
               ? stored
@@ -56,11 +58,11 @@
               'content',
               theme === 'dark' ? '#0c0f19' : '#f3f5fb',
             )
-          console.warn('La préférence de thème locale est inaccessible.', error)
+          console.warn('The local theme preference is unavailable.', error)
         }
       })()
     </script>
-    <title>Mon Budget</title>
+    <title>Finance</title>
   </head>
   <body>
     <div id="root"></div>

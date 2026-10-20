@@ -77,8 +77,8 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
       {!graph ? (
         <div className="chart-empty">
           <div aria-hidden="true">↗</div>
-          <h3>Le flux apparaîtra ici</h3>
-          <p>Ajoutez des montants pour visualiser la circulation de l’argent.</p>
+          <h3>Your cash flow will appear here</h3>
+          <p>Add amounts to visualise how your money moves.</p>
         </div>
       ) : (
         <svg
@@ -89,9 +89,9 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
           role="img"
           aria-labelledby="cash-flow-title cash-flow-description"
         >
-          <title id="cash-flow-title">Répartition du budget</title>
+          <title id="cash-flow-title">Budget allocation</title>
           <desc id="cash-flow-description">
-            Flux des revenus vers les comptes puis vers les dépenses.
+            Income flows to accounts and then to expenses.
           </desc>
           <g>
             {graph.links.map((link, index) => (

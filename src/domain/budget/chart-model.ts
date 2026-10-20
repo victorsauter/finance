@@ -37,7 +37,7 @@ export function buildCashFlowModel(budget: BudgetMonth): CashFlowModel {
     }
   }
 
-  addNode({ id: 'budget', name: 'Budget du foyer', kind: 'budget' })
+  addNode({ id: 'budget', name: 'Household budget', kind: 'budget' })
 
   for (const income of budget.incomes) {
     if (income.amountCents <= 0) continue
@@ -65,7 +65,7 @@ export function buildCashFlowModel(budget: BudgetMonth): CashFlowModel {
     if (!category.accountId) {
       addNode({
         id: 'unassigned',
-        name: 'Dépenses non affectées',
+        name: 'Unassigned expenses',
         kind: 'warning',
       })
     }
@@ -82,7 +82,7 @@ export function buildCashFlowModel(budget: BudgetMonth): CashFlowModel {
   if (summary.unallocatedIncomeCents > 0) {
     addNode({
       id: 'unallocated',
-      name: 'Non affecté / épargne',
+      name: 'Unallocated / savings',
       kind: 'saving',
     })
     links.push({

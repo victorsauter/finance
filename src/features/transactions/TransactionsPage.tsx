@@ -14,9 +14,9 @@ import {
 import { RevolutCsvImporter } from './RevolutCsvImporter'
 
 const kindLabels: Record<ImportedTransactionKind, string> = {
-  expense: 'Dépense',
-  income: 'Entrée',
-  transfer: 'Transfert',
+  expense: 'Expense',
+  income: 'Income',
+  transfer: 'Transfer',
 }
 
 function budgetMonthKey(year: number, month: number) {
@@ -26,7 +26,7 @@ function budgetMonthKey(year: number, month: number) {
 function transactionSort(left: ImportedTransaction, right: ImportedTransaction) {
   return (
     right.bookingDate.localeCompare(left.bookingDate) ||
-    left.description.localeCompare(right.description, 'fr')
+    left.description.localeCompare(right.description, 'en')
   )
 }
 
@@ -106,7 +106,7 @@ export function TransactionsPage() {
   const removeTransaction = (transaction: ImportedTransaction) => {
     if (
       window.confirm(
-        `Supprimer l’opération « ${transaction.description} » du ${transaction.bookingDate} ?`,
+        `Delete “${transaction.description}” from ${transaction.bookingDate}?`,
       )
     ) {
       deleteTransaction(transaction.id)
@@ -117,17 +117,17 @@ export function TransactionsPage() {
     <main className="content-page transactions-page">
       <div className="transactions-intro">
         <div className="page-intro">
-          <p className="eyebrow">Dépenses réelles</p>
-          <h1>Opérations Revolut</h1>
+          <p className="eyebrow">Actual expenses</p>
+          <h1>Revolut transactions</h1>
           <p>
-            Importez un relevé CSV, contrôlez les nouvelles lignes, puis
-            classez les dépenses dans les catégories du budget correspondant.
+            Import a CSV statement, review the new rows, then assign expenses
+            to categories in the matching budget.
           </p>
         </div>
         <label className="month-filter">
-          <span>Mois affiché</span>
+          <span>Displayed month</span>
           <select
-            aria-label="Mois des opérations"
+            aria-label="Transaction month"
             value={selectedMonth}
             onChange={(event) => setSelectedMonth(event.target.value)}
           >
@@ -144,18 +144,18 @@ export function TransactionsPage() {
 
       <section
         className="transaction-summary-grid"
-        aria-label={`Résumé des opérations de ${formatMonthKey(selectedMonth)}`}
+        aria-label={`Transaction summary for ${formatMonthKey(selectedMonth)}`}
       >
         <article>
-          <span>Dépenses réelles</span>
+          <span>Actual expenses</span>
           <strong>{formatMoney(actualExpenseCents)}</strong>
-          <small>Opérations EUR classées en dépenses, frais inclus</small>
+          <small>EUR transactions classified as expenses, including fees</small>
         </article>
         <article>
-          <span>Budget prévu</span>
+          <span>Planned budget</span>
           <strong>{formatMoney(plannedExpenseCents)}</strong>
           <small>
-            {budget ? budget.name : 'Aucun budget pour ce mois'}
+            {budget ? budget.name : 'No budget for this month'}
           </small>
         </article>
         <article
@@ -163,17 +163,17 @@ export function TransactionsPage() {
             actualExpenseCents > plannedExpenseCents ? 'is-negative' : ''
           }
         >
-          <span>Écart disponible</span>
+          <span>Available difference</span>
           <strong>{formatMoney(plannedExpenseCents - actualExpenseCents)}</strong>
-          <small>Prévu moins dépenses réelles</small>
+          <small>Planned minus actual expenses</small>
         </article>
         <article className={unclassifiedCount > 0 ? 'needs-attention' : ''}>
-          <span>À classer</span>
+          <span>To classify</span>
           <strong>{unclassifiedCount}</strong>
           <small>
             {actualIncomeCents > 0
-              ? `${formatMoney(actualIncomeCents)} d’entrées EUR`
-              : 'Aucune entrée EUR'}
+              ? `${formatMoney(actualIncomeCents)} of EUR income`
+              : 'No EUR income'}
           </small>
         </article>
       </section>
@@ -184,11 +184,10 @@ export function TransactionsPage() {
             !
           </div>
           <div>
-            <h2>Devises multiples</h2>
+            <h2>Multiple currencies</h2>
             <p>
-              {nonEuroCount} {nonEuroCount === 1 ? 'opération' : 'opérations'}{' '}
-              hors EUR {nonEuroCount === 1 ? 'est exclue' : 'sont exclues'} des
-              totaux. Le montant d’origine reste visible ci-dessous.
+              {nonEuroCount} {nonEuroCount === 1 ? 'transaction is' : 'transactions are'}{' '}
+              excluded from EUR totals. The original amount remains visible below.
             </p>
           </div>
         </div>
@@ -200,10 +199,10 @@ export function TransactionsPage() {
             !
           </div>
           <div>
-            <h2>Aucun budget pour {formatMonthKey(selectedMonth)}</h2>
+            <h2>No budget for {formatMonthKey(selectedMonth)}</h2>
             <p>
-              Les opérations sont conservées, mais leurs catégories ne pourront
-              être affectées qu’après création de ce mois dans l’écran Budget.
+              Transactions are retained, but their categories can only be
+              assigned after you create this month on the Budget screen.
             </p>
           </div>
         </div>
@@ -212,14 +211,14 @@ export function TransactionsPage() {
       <section className="transactions-card" aria-labelledby="transactions-title">
         <div className="transactions-card-heading">
           <div>
-            <p className="eyebrow">Historique importé</p>
+            <p className="eyebrow">Imported history</p>
             <h2 id="transactions-title">
               {formatMonthKey(selectedMonth)}
             </h2>
           </div>
           <span>
             {transactions.length}{' '}
-            {transactions.length === 1 ? 'opération' : 'opérations'}
+            {transactions.length === 1 ? 'transaction' : 'transactions'}
           </span>
         </div>
 
@@ -228,10 +227,10 @@ export function TransactionsPage() {
             <div aria-hidden="true">
               <Download size={23} />
             </div>
-            <h3>Aucune opération pour ce mois</h3>
+            <h3>No transactions for this month</h3>
             <p>
-              Choisissez un export CSV Revolut. Les fichiers déjà importés
-              peuvent être sélectionnés sans créer de doublons.
+              Choose a Revolut CSV export. Previously imported files can be
+              selected again without creating duplicates.
             </p>
           </div>
         ) : (
@@ -239,10 +238,10 @@ export function TransactionsPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Date et libellé</th>
-                  <th>Nature</th>
-                  <th>Catégorie</th>
-                  <th>Montant</th>
+                  <th>Date and description</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Amount</th>
                   <th>
                     <span className="visually-hidden">Actions</span>
                   </th>
@@ -255,7 +254,7 @@ export function TransactionsPage() {
                     Boolean(budget?.expenseCategories.length)
                   return (
                     <tr key={transaction.id}>
-                      <td data-label="Opération">
+                      <td data-label="Transaction">
                         <div className="transaction-description">
                           <time dateTime={transaction.bookingDate}>
                             {formatTransactionDate(transaction.bookingDate)}
@@ -263,9 +262,9 @@ export function TransactionsPage() {
                           <div>
                             <strong>{transaction.description}</strong>
                             <span>
-                              {transaction.transactionType ?? 'Type inconnu'}
+                              {transaction.transactionType ?? 'Unknown type'}
                               {transaction.feeCents > 0
-                                ? ` · frais ${formatTransactionAmount(
+                                ? ` · fee ${formatTransactionAmount(
                                     transaction.feeCents,
                                     transaction.currency,
                                   )}`
@@ -274,9 +273,9 @@ export function TransactionsPage() {
                           </div>
                         </div>
                       </td>
-                      <td data-label="Nature">
+                      <td data-label="Type">
                         <select
-                          aria-label={`Nature de ${transaction.description}`}
+                          aria-label={`Type for ${transaction.description}`}
                           value={transaction.kind}
                           onChange={(event) =>
                             setTransactionKind(
@@ -294,9 +293,9 @@ export function TransactionsPage() {
                           )}
                         </select>
                       </td>
-                      <td data-label="Catégorie">
+                      <td data-label="Category">
                         <select
-                          aria-label={`Catégorie de ${transaction.description}`}
+                          aria-label={`Category for ${transaction.description}`}
                           value={
                             canCategorize
                               ? (transaction.categoryId ?? '')
@@ -312,10 +311,10 @@ export function TransactionsPage() {
                         >
                           <option value="">
                             {transaction.kind !== 'expense'
-                              ? 'Non applicable'
+                              ? 'Not applicable'
                               : budget
-                                ? 'À classer'
-                                : 'Budget absent'}
+                                ? 'To classify'
+                                : 'No budget'}
                           </option>
                           {budget?.expenseCategories.map((category) => (
                             <option key={category.id} value={category.id}>
@@ -325,7 +324,7 @@ export function TransactionsPage() {
                         </select>
                       </td>
                       <td
-                        data-label="Montant"
+                        data-label="Amount"
                         className={
                           transaction.amountCents < 0
                             ? 'transaction-debit'
@@ -341,7 +340,7 @@ export function TransactionsPage() {
                         <button
                           type="button"
                           className="transaction-delete"
-                          aria-label={`Supprimer ${transaction.description}`}
+                          aria-label={`Delete ${transaction.description}`}
                           onClick={() => removeTransaction(transaction)}
                         >
                           <Trash2 aria-hidden="true" size={17} />

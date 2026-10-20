@@ -117,7 +117,7 @@ function detectDelimiter(text: string): CsvDelimiter {
   )[0] ?? [',', 0]
   if (count === 0) {
     throw new RevolutCsvError(
-      'Le séparateur du CSV est introuvable. Utilisez un export Revolut CSV.',
+      'The CSV delimiter could not be detected. Use a Revolut CSV export.',
     )
   }
   return delimiter
@@ -176,7 +176,7 @@ function parseRecords(text: string, delimiter: CsvDelimiter): CsvRecord[] {
 
   if (inQuotes) {
     throw new RevolutCsvError(
-      'Le CSV contient un champ entre guillemets qui n’est pas fermé.',
+      'The CSV contains an unclosed quoted field.',
     )
   }
   if (value.length > 0 || values.length > 0) pushRecord()
@@ -204,13 +204,13 @@ function resolveHeaders(headers: string[]): HeaderIndexes {
     indexes.currency === undefined ? 'Currency' : null,
     indexes.state === undefined ? 'State' : null,
     indexes.startedAt === undefined && indexes.completedAt === undefined
-      ? 'Started Date ou Completed Date'
+      ? 'Started Date or Completed Date'
       : null,
   ].filter((name): name is string => name !== null)
 
   if (missing.length > 0) {
     throw new RevolutCsvError(
-      `Colonnes Revolut manquantes : ${missing.join(', ')}.`,
+      `Missing Revolut columns: ${missing.join(', ')}.`,
     )
   }
   return indexes
@@ -265,11 +265,11 @@ function normalizeDecimal(value: string): string | null {
 function parseCents(value: string, fieldName: string): number {
   const normalized = normalizeDecimal(value)
   if (normalized === null) {
-    throw new Error(`${fieldName} invalide : « ${value} »`)
+    throw new Error(`Invalid ${fieldName}: “${value}”`)
   }
   const amount = Number(normalized)
   if (!Number.isFinite(amount) || Math.abs(amount) > Number.MAX_SAFE_INTEGER / 100) {
-    throw new Error(`${fieldName} hors limites : « ${value} »`)
+    throw new Error(`${fieldName} is out of range: “${value}”`)
   }
   return Math.round(amount * 100)
 }
@@ -403,13 +403,13 @@ export function parseRevolutCsv(
   options: ParseOptions,
 ): RevolutCsvResult {
   if (text.trim() === '') {
-    throw new RevolutCsvError('Le fichier CSV est vide.')
+    throw new RevolutCsvError('The CSV file is empty.')
   }
 
   const delimiter = detectDelimiter(text)
   const records = parseRecords(text, delimiter)
   if (records.length < 2) {
-    throw new RevolutCsvError('Le fichier ne contient aucune transaction.')
+    throw new RevolutCsvError('The file does not contain any transactions.')
   }
 
   const headers = resolveHeaders(records[0]!.values)
@@ -429,7 +429,7 @@ export function parseRevolutCsv(
         issues.push({
           line: record.line,
           reason: 'pending',
-          message: 'Opération en attente, à réimporter une fois terminée.',
+          message: 'Pending transaction. Import it again once it is completed.',
         })
         continue
       }
@@ -437,21 +437,21 @@ export function parseRevolutCsv(
         issues.push({
           line: record.line,
           reason: 'rejected',
-          message: 'Opération annulée, rejetée ou dans un état non pris en charge.',
+          message: 'Transaction cancelled, rejected, or in an unsupported state.',
         })
         continue
       }
 
       const description = cell(record, headers, 'description')
-      if (!description) throw new Error('description manquante')
+      if (!description) throw new Error('missing description')
       const amountCents = parseCents(
         cell(record, headers, 'amount'),
-        'montant',
+        'amount',
       )
-      if (amountCents === 0) throw new Error('montant nul')
+      if (amountCents === 0) throw new Error('zero amount')
       const currency = cell(record, headers, 'currency').toUpperCase()
       if (!/^[A-Z]{3}$/.test(currency)) {
-        throw new Error(`devise invalide : « ${currency} »`)
+        throw new Error(`invalid currency: “${currency}”`)
       }
 
       const startedAt =
@@ -459,14 +459,14 @@ export function parseRevolutCsv(
       const completedAt =
         cell(record, headers, 'completedAt').slice(0, 100) || null
       const bookingDate = toIsoDate(completedAt ?? startedAt ?? '')
-      if (!bookingDate) throw new Error('date invalide ou manquante')
+      if (!bookingDate) throw new Error('missing or invalid date')
 
       const feeCents =
-        parseOptionalCents(cell(record, headers, 'fee'), 'frais') ?? 0
-      if (feeCents < 0) throw new Error('les frais ne peuvent pas être négatifs')
+        parseOptionalCents(cell(record, headers, 'fee'), 'fee') ?? 0
+      if (feeCents < 0) throw new Error('fees cannot be negative')
       const balanceCents = parseOptionalCents(
         cell(record, headers, 'balance'),
-        'solde',
+        'balance',
       )
       const transactionType = cell(record, headers, 'type') || null
       const product = cell(record, headers, 'product') || null
@@ -489,7 +489,7 @@ export function parseRevolutCsv(
         issues.push({
           line: record.line,
           reason: 'duplicate',
-          message: 'Doublon dans ce fichier.',
+          message: 'Duplicate transaction in this file.',
         })
         continue
       }
@@ -521,7 +521,7 @@ export function parseRevolutCsv(
         line: record.line,
         reason: 'invalid',
         message:
-          error instanceof Error ? error.message : 'Ligne CSV invalide.',
+          error instanceof Error ? error.message : 'Invalid CSV row.',
       })
     }
   }

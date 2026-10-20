@@ -16,6 +16,11 @@ test-results
 coverage
 *.local
 
+# Kubernetes credentials must remain local to the workstation.
+.kube/
+kubeconfig
+*.kubeconfig
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -36,12 +36,12 @@ export function MonthToolbar() {
 
   const handleDelete = () => {
     if (data.budgetMonths.length <= 1) {
-      window.alert('Le dernier budget ne peut pas être supprimé.')
+      window.alert('The last budget cannot be deleted.')
       return
     }
     if (
       window.confirm(
-        `Supprimer ${activeBudget.name} et toutes ses données planifiées ?`,
+        `Delete ${activeBudget.name} and all of its planned data?`,
       )
     ) {
       deleteActiveBudget()
@@ -55,12 +55,12 @@ export function MonthToolbar() {
   }
 
   return (
-    <section className="month-toolbar" aria-label="Navigation entre les mois">
+    <section className="month-toolbar" aria-label="Month navigation">
       <div className="month-heading">
-        <p className="eyebrow">Budget mensuel</p>
+        <p className="eyebrow">Monthly budget</p>
         <NameInput
           value={activeBudget.name}
-          ariaLabel="Nom du budget"
+          ariaLabel="Budget name"
           className="month-name-input"
           onCommit={(name) =>
             updateActiveBudget((budget) => {
@@ -75,13 +75,13 @@ export function MonthToolbar() {
           type="button"
           className="icon-button"
           disabled={activeIndex <= 0}
-          aria-label="Budget précédent"
+          aria-label="Previous budget"
           onClick={() => goToAdjacentBudget(-1)}
         >
           <ChevronLeft aria-hidden="true" size={20} />
         </button>
         <select
-          aria-label="Budget actif"
+          aria-label="Active budget"
           value={activeBudget.id}
           onChange={(event) => setActiveBudget(event.target.value)}
         >
@@ -95,7 +95,7 @@ export function MonthToolbar() {
           type="button"
           className="icon-button"
           disabled={activeIndex >= sortedBudgets.length - 1}
-          aria-label="Budget suivant"
+          aria-label="Next budget"
           onClick={() => goToAdjacentBudget(1)}
         >
           <ChevronRight aria-hidden="true" size={20} />
@@ -109,17 +109,17 @@ export function MonthToolbar() {
           onClick={() => createMonth(false)}
         >
           <Plus aria-hidden="true" size={17} />
-          Nouveau mois
+          New month
         </button>
         <details ref={actionsRef} className="month-more">
-          <summary className="icon-button" aria-label="Actions du budget">
+          <summary className="icon-button" aria-label="Budget actions">
             <MoreHorizontal aria-hidden="true" size={21} />
-            <span className="visually-hidden">Actions du budget</span>
+            <span className="visually-hidden">Budget actions</span>
           </summary>
           <div className="month-actions-menu glass-panel">
             <button type="button" onClick={() => createMonth(true)}>
               <CopyPlus aria-hidden="true" size={17} />
-              Reporter ce mois
+              Copy this month
             </button>
             <button
               type="button"
@@ -127,7 +127,7 @@ export function MonthToolbar() {
               onClick={handleDelete}
             >
               <Trash2 aria-hidden="true" size={17} />
-              Supprimer le budget
+              Delete budget
             </button>
           </div>
         </details>

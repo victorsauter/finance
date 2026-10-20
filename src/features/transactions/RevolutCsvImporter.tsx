@@ -61,7 +61,7 @@ export function RevolutCsvImporter({
     setLastImport(null)
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setIsError(true)
-      setMessage('Le fichier dépasse la limite de 10 Mo.')
+      setMessage('The file exceeds the 10 MB limit.')
       return
     }
 
@@ -88,8 +88,8 @@ export function RevolutCsvImporter({
       setIsError(true)
       setMessage(
         error instanceof Error
-          ? `Import impossible : ${error.message}`
-          : 'Ce fichier n’est pas un export Revolut CSV valide.',
+          ? `Import failed: ${error.message}`
+          : 'This file is not a valid Revolut CSV export.',
       )
     }
   }
@@ -107,11 +107,7 @@ export function RevolutCsvImporter({
     setLastImport({ batchId, count: added })
     setIsError(false)
     setMessage(
-      `${added} ${plural(added, 'opération')} ${plural(
-        added,
-        'importée',
-        'importées',
-      )}.`,
+      `${added} ${plural(added, 'transaction')} imported.`,
     )
     onImported(latestMonth)
   }
@@ -122,11 +118,7 @@ export function RevolutCsvImporter({
     setLastImport(null)
     setIsError(false)
     setMessage(
-      `${deleted} ${plural(deleted, 'opération')} ${plural(
-        deleted,
-        'supprimée',
-        'supprimées',
-      )}.`,
+      `${deleted} ${plural(deleted, 'transaction')} deleted.`,
     )
   }
 
@@ -134,11 +126,11 @@ export function RevolutCsvImporter({
     <section className="import-card" aria-labelledby="revolut-import-title">
       <div className="import-heading">
         <div>
-          <p className="eyebrow">Import local</p>
-          <h2 id="revolut-import-title">Ajouter un relevé Revolut</h2>
+          <p className="eyebrow">Local import</p>
+          <h2 id="revolut-import-title">Add a Revolut statement</h2>
           <p>
-            Le fichier est analysé uniquement dans ce navigateur. Seules les
-            opérations terminées sont proposées ; les doublons sont ignorés.
+            The file is analysed only in this browser. Only completed
+            transactions are offered, and duplicates are ignored.
           </p>
         </div>
         <input
@@ -146,7 +138,7 @@ export function RevolutCsvImporter({
           className="visually-hidden"
           type="file"
           accept=".csv,text/csv,text/plain"
-          aria-label="Fichier CSV Revolut"
+          aria-label="Revolut CSV file"
           onChange={(event) => void selectFile(event)}
         />
         <button
@@ -155,7 +147,7 @@ export function RevolutCsvImporter({
           onClick={() => inputRef.current?.click()}
         >
           <FileUp aria-hidden="true" size={17} />
-          Choisir un CSV
+          Choose a CSV
         </button>
       </div>
 
@@ -174,7 +166,7 @@ export function RevolutCsvImporter({
               onClick={undoLastImport}
             >
               <RotateCcw aria-hidden="true" size={15} />
-              Annuler cet import
+              Undo this import
             </button>
           )}
         </div>
@@ -185,7 +177,7 @@ export function RevolutCsvImporter({
           <div className="import-preview-heading">
             <div>
               <strong>{preview.fileName}</strong>
-              <span>{preview.result.rowCount} lignes lues</span>
+              <span>{preview.result.rowCount} rows read</span>
             </div>
             <button
               type="button"
@@ -193,28 +185,28 @@ export function RevolutCsvImporter({
               onClick={() => setPreview(null)}
             >
               <X aria-hidden="true" size={15} />
-              Fermer
+              Close
             </button>
           </div>
 
-          <div className="import-stats" aria-label="Résumé de l’import">
+          <div className="import-stats" aria-label="Import summary">
             <div>
               <strong>{preview.newTransactions.length}</strong>
-              <span>Nouvelles</span>
+              <span>New</span>
             </div>
             <div>
               <strong>
                 {preview.existingDuplicateCount + issueCounts.duplicate}
               </strong>
-              <span>Doublons</span>
+              <span>Duplicates</span>
             </div>
             <div>
               <strong>{issueCounts.pending}</strong>
-              <span>En attente</span>
+              <span>Pending</span>
             </div>
             <div>
               <strong>{issueCounts.invalid + issueCounts.rejected}</strong>
-              <span>Écartées</span>
+              <span>Excluded</span>
             </div>
           </div>
 
@@ -224,9 +216,9 @@ export function RevolutCsvImporter({
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Libellé</th>
-                    <th>Nature détectée</th>
-                    <th>Montant</th>
+                    <th>Description</th>
+                    <th>Detected type</th>
+                    <th>Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,17 +227,17 @@ export function RevolutCsvImporter({
                     .map((transaction) => (
                       <tr key={transaction.sourceKey}>
                         <td data-label="Date">{transaction.bookingDate}</td>
-                        <td data-label="Libellé">{transaction.description}</td>
-                        <td data-label="Nature">
+                        <td data-label="Description">{transaction.description}</td>
+                        <td data-label="Type">
                           {
                             {
-                              expense: 'Dépense',
-                              income: 'Entrée',
-                              transfer: 'Transfert',
+                              expense: 'Expense',
+                              income: 'Income',
+                              transfer: 'Transfer',
                             }[transaction.kind]
                           }
                         </td>
-                        <td data-label="Montant">
+                        <td data-label="Amount">
                           {formatTransactionAmount(
                             transaction.amountCents,
                             transaction.currency,
@@ -257,7 +249,7 @@ export function RevolutCsvImporter({
               </table>
               {preview.newTransactions.length > 8 && (
                 <p className="import-more">
-                  + {preview.newTransactions.length - 8} autres opérations
+                  + {preview.newTransactions.length - 8} more transactions
                 </p>
               )}
             </div>
@@ -266,19 +258,18 @@ export function RevolutCsvImporter({
           {preview.result.issues.length > 0 && (
             <details className="import-issues">
               <summary>
-                Voir les {preview.result.issues.length} lignes non importables
+                Show the {preview.result.issues.length} rows that cannot be imported
               </summary>
               <ul>
                 {preview.result.issues.slice(0, 20).map((issue, index) => (
                   <li key={`${issue.line}-${issue.reason}-${index}`}>
-                    Ligne {issue.line} : {issue.message}
+                    Row {issue.line}: {issue.message}
                   </li>
                 ))}
               </ul>
               {preview.result.issues.length > 20 && (
                 <p>
-                  {preview.result.issues.length - 20} autres lignes ne sont pas
-                  affichées.
+                  {preview.result.issues.length - 20} more rows are not shown.
                 </p>
               )}
             </details>
@@ -290,7 +281,7 @@ export function RevolutCsvImporter({
               className="secondary-button"
               onClick={() => setPreview(null)}
             >
-              Annuler
+              Cancel
             </button>
             <button
               type="button"
@@ -298,8 +289,8 @@ export function RevolutCsvImporter({
               disabled={preview.newTransactions.length === 0}
               onClick={confirmImport}
             >
-              Importer {preview.newTransactions.length}{' '}
-              {plural(preview.newTransactions.length, 'opération')}
+              Import {preview.newTransactions.length}{' '}
+              {plural(preview.newTransactions.length, 'transaction')}
             </button>
           </div>
         </div>

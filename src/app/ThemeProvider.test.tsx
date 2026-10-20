@@ -8,10 +8,10 @@ function ThemeProbe() {
   const { preference, resolvedTheme, setPreference } = useTheme()
   return (
     <div>
-      <output aria-label="Préférence">{preference}</output>
-      <output aria-label="Thème résolu">{resolvedTheme}</output>
+      <output aria-label="Preference">{preference}</output>
+      <output aria-label="Resolved theme">{resolvedTheme}</output>
       <button type="button" onClick={() => setPreference('dark')}>
-        Forcer sombre
+        Force dark
       </button>
     </div>
   )
@@ -78,13 +78,13 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     )
 
-    expect(screen.getByLabelText('Préférence')).toHaveTextContent('system')
-    expect(screen.getByLabelText('Thème résolu')).toHaveTextContent('light')
+    expect(screen.getByLabelText('Preference')).toHaveTextContent('system')
+    expect(screen.getByLabelText('Resolved theme')).toHaveTextContent('light')
     expect(document.documentElement.dataset.theme).toBe('light')
 
     act(() => media.setMatches(true))
 
-    expect(screen.getByLabelText('Thème résolu')).toHaveTextContent('dark')
+    expect(screen.getByLabelText('Resolved theme')).toHaveTextContent('dark')
     expect(document.documentElement.dataset.theme).toBe('dark')
   })
 
@@ -99,9 +99,9 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Forcer sombre' }))
+    await user.click(screen.getByRole('button', { name: 'Force dark' }))
 
-    expect(window.localStorage.getItem('mon-budget-theme')).toBe('dark')
+    expect(window.localStorage.getItem('finance-theme')).toBe('dark')
     expect(document.documentElement.dataset.themePreference).toBe('dark')
     expect(document.documentElement.dataset.theme).toBe('dark')
   })

@@ -36,18 +36,18 @@ const navigationItems: Array<{
   Icon: ComponentType<LucideProps>
 }> = [
   { to: '/', label: 'Budget', end: true, Icon: WalletCards },
-  { to: '/operations', label: 'Opérations', Icon: ReceiptText },
-  { to: '/sauvegarde', label: 'Sauvegarde', Icon: Database },
+  { to: '/transactions', label: 'Transactions', Icon: ReceiptText },
+  { to: '/backup', label: 'Backup', Icon: Database },
 ]
 
 const saveStatusContent: Record<
   SaveStatus,
   { label: string; Icon: ComponentType<LucideProps> }
 > = {
-  loading: { label: 'Ouverture…', Icon: LoaderCircle },
-  saving: { label: 'Enregistrement…', Icon: LoaderCircle },
-  saved: { label: 'Enregistré localement', Icon: CheckCircle2 },
-  error: { label: 'Erreur de sauvegarde', Icon: AlertCircle },
+  loading: { label: 'Opening…', Icon: LoaderCircle },
+  saving: { label: 'Saving…', Icon: LoaderCircle },
+  saved: { label: 'Saved locally', Icon: CheckCircle2 },
+  error: { label: 'Save error', Icon: AlertCircle },
 }
 
 function ConnectionStatus({ compact = false }: { compact?: boolean }) {
@@ -67,10 +67,10 @@ function ConnectionStatus({ compact = false }: { compact?: boolean }) {
   return (
     <span
       className={`offline-pill ${compact ? 'is-compact' : ''}`}
-      aria-label={compact ? 'Hors connexion' : undefined}
+      aria-label={compact ? 'Offline' : undefined}
     >
       <CloudOff aria-hidden="true" size={14} />
-      {!compact && 'Hors connexion'}
+      {!compact && 'Offline'}
     </span>
   )
 }
@@ -86,7 +86,7 @@ function SaveStatusIndicator({
   return (
     <span
       className={`save-status save-${status} ${compact ? 'is-compact' : ''}`}
-      title="État de la sauvegarde locale"
+      title="Local save status"
       aria-label={compact ? label : undefined}
     >
       <Icon aria-hidden="true" size={14} />
@@ -100,14 +100,14 @@ function Brand({ compact = false }: { compact?: boolean }) {
     <NavLink
       to="/"
       className={`brand ${compact ? 'is-compact' : ''}`}
-      aria-label="Mon Budget, accueil"
+      aria-label="Finance, home"
     >
       <span className="brand-mark" aria-hidden="true">
         <WalletCards size={compact ? 19 : 23} strokeWidth={2.15} />
       </span>
       <span className="brand-copy">
-        Mon Budget
-        <small>Simple. Privé. Toujours avec vous.</small>
+        Finance
+        <small>Simple. Private. Always with you.</small>
       </span>
     </NavLink>
   )
@@ -141,14 +141,14 @@ function AppShell() {
     <div className="app-shell">
       <aside className="desktop-sidebar glass-panel">
         <Brand />
-        <Navigation className="sidebar-nav" label="Navigation principale" />
+        <Navigation className="sidebar-nav" label="Main navigation" />
         <div className="sidebar-meta">
           <div className="sidebar-status" aria-live="polite">
             <ConnectionStatus />
             <SaveStatusIndicator status={saveStatus} />
           </div>
           <ThemeSwitcher />
-          <p>Vos données restent sur cet appareil.</p>
+          <p>Your data stays on this device.</p>
         </div>
       </aside>
 
@@ -169,7 +169,7 @@ function AppShell() {
             <AlertCircle aria-hidden="true" size={17} />
             <span>{error}</span>
             <button type="button" onClick={dismissError}>
-              Fermer
+              Close
             </button>
           </div>
         )}
@@ -182,25 +182,27 @@ function AppShell() {
                 aria-hidden="true"
                 size={20}
               />
-              Chargement…
+              Loading…
             </main>
           }
         >
           <Routes>
             <Route path="/" element={<BudgetPage />} />
-            <Route path="/operations" element={<TransactionsPage />} />
-            <Route path="/sauvegarde" element={<BackupPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
+            <Route path="/backup" element={<BackupPage />} />
+            <Route path="/operations" element={<Navigate to="/transactions" replace />} />
+            <Route path="/sauvegarde" element={<Navigate to="/backup" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
 
         <footer className="app-footer">
-          <span>Données locales et privées.</span>
-          <NavLink to="/sauvegarde">Créer une sauvegarde</NavLink>
+          <span>Local and private data.</span>
+          <NavLink to="/backup">Create a backup</NavLink>
         </footer>
       </div>
 
-      <Navigation className="mobile-dock glass-panel" label="Navigation mobile" />
+      <Navigation className="mobile-dock glass-panel" label="Mobile navigation" />
     </div>
   )
 }

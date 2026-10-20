@@ -39,7 +39,7 @@ export const BudgetContext = createContext<BudgetContextValue | null>(null)
 export function useBudget() {
   const context = useContext(BudgetContext)
   if (!context) {
-    throw new Error('useBudget doit être utilisé dans BudgetProvider.')
+    throw new Error('useBudget must be used within BudgetProvider.')
   }
   return context
 }

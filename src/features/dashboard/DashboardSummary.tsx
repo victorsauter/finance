@@ -7,7 +7,7 @@ export function DashboardSummary({ summary }: { summary: BudgetSummary }) {
       .filter((allocation) => allocation.balanceCents < 0)
       .map(
         (allocation) =>
-          `${allocation.accountName} dépasse son enveloppe de ${formatMoney(
+          `${allocation.accountName} is over its allocation by ${formatMoney(
             Math.abs(allocation.balanceCents),
           )}.`,
       ),
@@ -15,12 +15,12 @@ export function DashboardSummary({ summary }: { summary: BudgetSummary }) {
       ? [
           `${formatMoney(
             summary.unassignedExpenseCents,
-          )} de dépenses ne sont affectées à aucun compte.`,
+          )} of expenses are not assigned to an account.`,
         ]
       : []),
     ...(summary.unallocatedIncomeCents < 0
       ? [
-          `Les virements prévus dépassent les revenus de ${formatMoney(
+          `Planned transfers exceed income by ${formatMoney(
             Math.abs(summary.unallocatedIncomeCents),
           )}.`,
         ]
@@ -29,40 +29,40 @@ export function DashboardSummary({ summary }: { summary: BudgetSummary }) {
 
   return (
     <>
-      <section className="summary-dashboard" aria-label="Résumé du budget">
+      <section className="summary-dashboard" aria-label="Budget summary">
         <article
           className={`summary-hero ${
             summary.remainingCents < 0 ? 'is-negative' : 'is-positive'
           }`}
         >
           <div>
-            <span>Reste disponible</span>
-            <small>Après toutes les dépenses planifiées</small>
+            <span>Available balance</span>
+            <small>After all planned expenses</small>
           </div>
           <strong>{formatMoney(summary.remainingCents)}</strong>
           <span className="summary-rate">
-            {formatPercent(summary.savingsRate)} des revenus
+            {formatPercent(summary.savingsRate)} of income
           </span>
         </article>
         <div className="summary-metrics">
           <article className="summary-card">
-            <span>Revenus</span>
+            <span>Income</span>
             <strong>{formatMoney(summary.incomeCents)}</strong>
-            <small>Entrées prévues</small>
+            <small>Planned income</small>
           </article>
           <article className="summary-card">
-            <span>Dépenses</span>
+            <span>Expenses</span>
             <strong>{formatMoney(summary.expenseCents)}</strong>
-            <small>Sorties planifiées</small>
+            <small>Planned outgoings</small>
           </article>
           <article
             className={`summary-card ${
               summary.unallocatedIncomeCents < 0 ? 'is-negative' : ''
             }`}
           >
-            <span>Non affecté</span>
+            <span>Unallocated</span>
             <strong>{formatMoney(summary.unallocatedIncomeCents)}</strong>
-            <small>Après virements</small>
+            <small>After transfers</small>
           </article>
         </div>
       </section>
@@ -71,7 +71,7 @@ export function DashboardSummary({ summary }: { summary: BudgetSummary }) {
         <section className="warning-panel" aria-labelledby="warnings-title">
           <div className="warning-icon" aria-hidden="true">!</div>
           <div>
-            <h2 id="warnings-title">Points à vérifier</h2>
+            <h2 id="warnings-title">Things to review</h2>
             <ul>
               {warnings.map((warning) => (
                 <li key={warning}>{warning}</li>

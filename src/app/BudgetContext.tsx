@@ -7,7 +7,10 @@ import {
   type ReactNode,
 } from 'react'
 import { LocalBudgetStore } from '../data/LocalBudgetStore'
-import { IndexedDbBudgetRepository } from '../data/indexeddb/IndexedDbBudgetRepository'
+import {
+  IndexedDbBudgetRepository,
+  loadLegacyBudgetData,
+} from '../data/indexeddb/IndexedDbBudgetRepository'
 import {
   cloneBudgetMonth,
   createEmptyBudgetMonth,
@@ -29,7 +32,7 @@ import {
 function getErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
-    : 'Une erreur inattendue est survenue.'
+    : 'An unexpected error occurred.'
 }
 
 function normalizeActiveBudget(data: AppData): AppData {
@@ -71,8 +74,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         if (!initializationRef.current) {
           initializationRef.current = (async () => {
             const persisted = await store.load()
+            const legacyData = persisted ? null : await loadLegacyBudgetData()
             const initial = normalizeActiveBudget(
-              persisted ?? createInitialAppData(),
+              persisted ?? legacyData ?? createInitialAppData(),
             )
             if (!persisted) {
               await store.save(initial)
@@ -89,7 +93,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } catch (loadError) {
         if (!cancelled) {
           setError(
-            `Impossible d’ouvrir les données locales : ${getErrorMessage(loadError)}`,
+            `Unable to open local data: ${getErrorMessage(loadError)}`,
           )
           setSaveStatus('error')
         }
@@ -121,7 +125,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         })
         .catch((saveError: unknown) => {
           setError(
-            `La sauvegarde locale a échoué : ${getErrorMessage(saveError)}`,
+            `Local save failed: ${getErrorMessage(saveError)}`,
           )
           setSaveStatus('error')
         })
@@ -369,7 +373,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         setSaveStatus('saved')
       } catch (replaceError) {
         setError(
-          `La restauration a échoué : ${getErrorMessage(replaceError)}`,
+          `Restore failed: ${getErrorMessage(replaceError)}`,
         )
         setSaveStatus('error')
         throw replaceError
@@ -390,8 +394,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         </div>
         <p>
           {saveStatus === 'error'
-            ? (error ?? 'Impossible de charger le budget.')
-            : 'Ouverture de votre budget…'}
+            ? (error ?? 'Unable to load your budget.')
+            : 'Opening your budget…'}
         </p>
       </main>
     )
@@ -405,9 +409,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   if (!activeBudget) {
     return (
       <main className="loading-screen">
-        <p>Aucun budget disponible.</p>
+        <p>No budget is available.</p>
         <button type="button" onClick={() => void resetData()}>
-          Créer un budget
+          Create a budget
         </button>
       </main>
     )

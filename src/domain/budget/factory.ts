@@ -17,7 +17,7 @@ function now(): string {
 }
 
 export function getMonthName(year: number, month: number): string {
-  const label = new Intl.DateTimeFormat('fr-FR', {
+  const label = new Intl.DateTimeFormat('en-GB', {
     month: 'long',
     year: 'numeric',
   }).format(new Date(year, month - 1, 1))
@@ -46,26 +46,26 @@ export function createExpenseCategory(
     id: createId(),
     name,
     accountId,
-    items: [createExpenseItem('Nouvelle dépense', 0)],
+    items: [createExpenseItem('New expense', 0)],
     sortOrder,
   }
 }
 
 export function createEmptyBudgetMonth(year: number, month: number): BudgetMonth {
   const timestamp = now()
-  const account = createAccount('Compte principal', 0)
+  const account = createAccount('Main account', 0)
 
   return {
     id: createId(),
     year,
     month,
     name: getMonthName(year, month),
-    incomes: [createIncome('Revenu principal', 0)],
+    incomes: [createIncome('Main income', 0)],
     accounts: [account],
     expenseCategories: [
       {
-        ...createExpenseCategory('Logement', 0, account.id),
-        items: [createExpenseItem('Loyer / crédit', 0)],
+        ...createExpenseCategory('Housing', 0, account.id),
+        items: [createExpenseItem('Rent / mortgage', 0)],
       },
     ],
     createdAt: timestamp,

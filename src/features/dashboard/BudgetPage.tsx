@@ -21,7 +21,7 @@ export function BudgetPage() {
 
   return (
     <main className="content-page">
-      <h1 className="visually-hidden">Budget de {activeBudget.name}</h1>
+      <h1 className="visually-hidden">Budget for {activeBudget.name}</h1>
       <MonthToolbar />
       <DashboardSummary summary={summary} />
 
@@ -31,12 +31,12 @@ export function BudgetPage() {
           <section className="chart-card" aria-labelledby="chart-title">
             <div className="card-heading">
               <div>
-                <p className="eyebrow">Vue d’ensemble</p>
-                <h2 id="chart-title">Circulation de l’argent</h2>
+                <p className="eyebrow">Overview</p>
+                <h2 id="chart-title">Cash flow</h2>
               </div>
               <p className="chart-legend">
                 <span aria-hidden="true"></span>
-                Largeur = montant
+                Width = amount
               </p>
             </div>
             <CashFlowChart model={flowModel} />
@@ -46,12 +46,12 @@ export function BudgetPage() {
           <section className="allocation-card" aria-labelledby="allocation-title">
             <div className="card-heading">
               <div>
-                <p className="eyebrow">Contrôle</p>
-                <h2 id="allocation-title">État des enveloppes</h2>
+                <p className="eyebrow">Review</p>
+                <h2 id="allocation-title">Allocation status</h2>
               </div>
             </div>
             {summary.accountAllocations.length === 0 ? (
-              <p className="empty-state">Aucun compte à contrôler.</p>
+              <p className="empty-state">No accounts to review.</p>
             ) : (
               <div className="allocation-list">
                 {summary.accountAllocations.map((allocation) => (
@@ -60,12 +60,12 @@ export function BudgetPage() {
                       <strong>{allocation.accountName}</strong>
                       <span>
                         {allocation.usageCents === 0
-                          ? 'Aucune dépense affectée'
+                          ? 'No assigned expenses'
                           : `${Math.round(
                               (allocation.usageCents /
                                 Math.max(allocation.transferCents, 1)) *
                                 100,
-                            )} % utilisé`}
+                            )}% used`}
                       </span>
                     </div>
                     <strong
@@ -73,7 +73,7 @@ export function BudgetPage() {
                         allocation.balanceCents < 0 ? 'negative-text' : ''
                       }
                     >
-                      {new Intl.NumberFormat('fr-FR', {
+                      {new Intl.NumberFormat('en-GB', {
                         style: 'currency',
                         currency: 'EUR',
                       }).format(allocation.balanceCents / 100)}

@@ -3,9 +3,9 @@ import type { ThemePreference } from '../../app/theme'
 import { useTheme } from '../../app/theme-context'
 
 const themeOptions = [
-  { value: 'system', label: 'Système', Icon: Laptop },
-  { value: 'light', label: 'Clair', Icon: Sun },
-  { value: 'dark', label: 'Sombre', Icon: Moon },
+  { value: 'system', label: 'System', Icon: Laptop },
+  { value: 'light', label: 'Light', Icon: Sun },
+  { value: 'dark', label: 'Dark', Icon: Moon },
 ] satisfies Array<{
   value: ThemePreference
   label: string
@@ -17,14 +17,14 @@ export function ThemeSwitcher({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className={`theme-control ${compact ? 'is-compact' : ''}`}>
-      <span className="theme-control-label">Apparence</span>
-      <div className="theme-segmented" role="group" aria-label="Apparence">
+      <span className="theme-control-label">Appearance</span>
+      <div className="theme-segmented" role="group" aria-label="Appearance">
         {themeOptions.map(({ value, label, Icon }) => (
           <button
             key={value}
             type="button"
             className={preference === value ? 'is-active' : ''}
-            aria-label={`Thème ${label.toLowerCase()}`}
+            aria-label={`${label} theme`}
             aria-pressed={preference === value}
             title={label}
             onClick={() => setPreference(value)}

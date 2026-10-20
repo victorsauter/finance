@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+# Replace the registry path and immutable version before deployment.
+images:
+  - name: finance
+    newName: registry.example.com/finance
+    newTag: "0.1.0"

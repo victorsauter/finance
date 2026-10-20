@@ -1,11 +1,11 @@
-const euroFormatter = new Intl.NumberFormat('fr-FR', {
+const euroFormatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
   currency: 'EUR',
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
 
-const percentFormatter = new Intl.NumberFormat('fr-FR', {
+const percentFormatter = new Intl.NumberFormat('en-GB', {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 })
@@ -15,11 +15,11 @@ export function formatMoney(cents: number): string {
 }
 
 export function formatPercent(value: number): string {
-  return `${percentFormatter.format(value)} %`
+  return `${percentFormatter.format(value)}%`
 }
 
 export function formatMoneyInput(cents: number): string {
-  return (cents / 100).toLocaleString('fr-FR', {
+  return (cents / 100).toLocaleString('en-GB', {
     useGrouping: false,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

@@ -4,37 +4,37 @@ import { readFile } from 'node:fs/promises'
 test('edits a budget and preserves it after reload', async ({ page }) => {
   await page.goto('/')
   await expect(
-    page.getByRole('heading', { name: 'Construire le mois' }),
+    page.getByRole('heading', { name: 'Build your month' }),
   ).toBeVisible()
 
-  const income = page.getByLabel('Montant de Revenu principal')
-  await income.fill('3500,50')
+  const income = page.getByLabel('Amount for Main income')
+  await income.fill('3500.50')
   await income.press('Tab')
 
-  const summary = page.getByRole('region', { name: 'Résumé du budget' })
+  const summary = page.getByRole('region', { name: 'Budget summary' })
   await expect(summary.locator('.summary-card').first()).toContainText(
-    '3 500,50',
+    '3,500.50',
   )
   await expect(page.locator('.save-status:visible')).toHaveClass(/save-saved/)
 
   await page.reload()
-  await expect(income).toHaveValue('3500,50')
-  await expect(summary.locator('article').first()).toContainText('3 500,50')
+  await expect(income).toHaveValue('3500.50')
+  await expect(summary.locator('article').first()).toContainText('3,500.50')
 })
 
 test('duplicates a month and keeps the page within the mobile viewport', async ({
   page,
 }) => {
   await page.goto('/')
-  await page.getByLabel('Montant de Revenu principal').fill('2500')
-  await page.getByLabel('Montant de Revenu principal').press('Tab')
-  const originalMonth = await page.getByLabel('Nom du budget').inputValue()
-  await page.getByLabel('Actions du budget').click()
-  await page.getByRole('button', { name: 'Reporter ce mois' }).click()
+  await page.getByLabel('Amount for Main income').fill('2500')
+  await page.getByLabel('Amount for Main income').press('Tab')
+  const originalMonth = await page.getByLabel('Budget name').inputValue()
+  await page.getByLabel('Budget actions').click()
+  await page.getByRole('button', { name: 'Copy this month' }).click()
 
-  await expect(page.getByLabel('Nom du budget')).not.toHaveValue(originalMonth)
-  await expect(page.getByLabel('Montant de Revenu principal')).toHaveValue(
-    '2500,00',
+  await expect(page.getByLabel('Budget name')).not.toHaveValue(originalMonth)
+  await expect(page.getByLabel('Amount for Main income')).toHaveValue(
+    '2500.00',
   )
   const pageOverflows = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
@@ -43,13 +43,13 @@ test('duplicates a month and keeps the page within the mobile viewport', async (
 })
 
 test('downloads a versioned JSON backup', async ({ page }) => {
-  await page.goto('/sauvegarde')
+  await page.goto('/backup')
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Télécharger le JSON' }).click()
+  await page.getByRole('button', { name: 'Download JSON' }).click()
   const download = await downloadPromise
 
   expect(download.suggestedFilename()).toMatch(
-    /^mon-budget-\d{4}-\d{2}-\d{2}\.json$/,
+    /^finance-\d{4}-\d{2}-\d{2}\.json$/,
   )
 })
 
@@ -66,40 +66,40 @@ test('imports a Revolut CSV once and preserves classification', async ({
     `${date},,Café,-3.20,card payment,Current,PENDING,EUR,pending-1`,
   ].join('\n')
 
-  await page.goto('/operations')
-  await page.getByLabel('Fichier CSV Revolut').setInputFiles({
+  await page.goto('/transactions')
+  await page.getByLabel('Revolut CSV file').setInputFiles({
     name: 'revolut.csv',
     mimeType: 'text/csv',
     buffer: Buffer.from(csv),
   })
 
   await expect(
-    page.getByRole('button', { name: 'Importer 2 opérations' }),
+    page.getByRole('button', { name: 'Import 2 transactions' }),
   ).toBeVisible()
-  await page.getByRole('button', { name: 'Importer 2 opérations' }).click()
+  await page.getByRole('button', { name: 'Import 2 transactions' }).click()
   await expect(page.getByText('Supermarché')).toBeVisible()
   await expect(
     page.locator('.transaction-summary-grid article').first(),
-  ).toContainText('42,50')
+  ).toContainText('42.50')
 
   await page
-    .getByLabel('Catégorie de Supermarché')
-    .selectOption({ label: 'Logement' })
+    .getByLabel('Category for Supermarché')
+    .selectOption({ label: 'Housing' })
   await expect(page.locator('.save-status:visible')).toHaveClass(/save-saved/)
 
   await page.reload()
   await expect(page.getByText('Supermarché')).toBeVisible()
   await expect(
-    page.getByLabel('Catégorie de Supermarché').locator('option:checked'),
-  ).toHaveText('Logement')
+    page.getByLabel('Category for Supermarché').locator('option:checked'),
+  ).toHaveText('Housing')
 
-  await page.getByLabel('Fichier CSV Revolut').setInputFiles({
+  await page.getByLabel('Revolut CSV file').setInputFiles({
     name: 'revolut.csv',
     mimeType: 'text/csv',
     buffer: Buffer.from(csv),
   })
   await expect(
-    page.getByRole('button', { name: 'Importer 0 opérations' }),
+    page.getByRole('button', { name: 'Import 0 transactions' }),
   ).toBeDisabled()
   expect(
     await page.evaluate(
@@ -121,7 +121,7 @@ test('reopens the installed application shell while offline', async ({
   try {
     await page.reload()
     await expect(
-      page.getByRole('heading', { name: 'Construire le mois' }),
+      page.getByRole('heading', { name: 'Build your month' }),
     ).toBeVisible()
     await expect(page.locator('.offline-pill:visible')).toBeVisible()
   } finally {
@@ -136,21 +136,21 @@ test('persists dark appearance and exposes adaptive navigation', async ({
   await page.goto('/')
 
   const appearance = isMobile
-    ? page.locator('.mobile-header').getByRole('group', { name: 'Apparence' })
+    ? page.locator('.mobile-header').getByRole('group', { name: 'Appearance' })
     : page.locator('.desktop-sidebar').getByRole('group', {
-        name: 'Apparence',
+        name: 'Appearance',
       })
-  await appearance.getByRole('button', { name: 'Thème sombre' }).click()
+  await appearance.getByRole('button', { name: 'Dark theme' }).click()
 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
 
   if (isMobile) {
-    await expect(page.getByRole('navigation', { name: 'Navigation mobile' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible()
     await expect(page.locator('.desktop-sidebar')).toBeHidden()
   } else {
-    await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
     await expect(page.locator('.mobile-dock')).toBeHidden()
   }
 })
@@ -160,7 +160,7 @@ test('keeps primary interactive targets at least 44 pixels', async ({
 }) => {
   await page.goto('/')
   await expect(
-    page.getByRole('heading', { name: 'Construire le mois' }),
+    page.getByRole('heading', { name: 'Build your month' }),
   ).toBeVisible()
   const sizes = await page
     .locator(
@@ -180,14 +180,14 @@ test('keeps primary interactive targets at least 44 pixels', async ({
 
 test('restores an exported budget only after confirmation', async ({ page }) => {
   await page.goto('/')
-  const income = page.getByLabel('Montant de Revenu principal')
-  await income.fill('1234,56')
+  const income = page.getByLabel('Amount for Main income')
+  await income.fill('1234.56')
   await income.press('Tab')
   await expect(page.locator('.desktop-sidebar .save-status')).toHaveClass(/save-saved/)
 
-  await page.goto('/sauvegarde')
+  await page.goto('/backup')
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Télécharger le JSON' }).click()
+  await page.getByRole('button', { name: 'Download JSON' }).click()
   const download = await downloadPromise
   const file = await download.path()
   if (!file) throw new Error('The JSON backup was not saved')
@@ -205,7 +205,7 @@ test('restores an exported budget only after confirmation', async ({ page }) => 
   await income.fill('99')
   await income.press('Tab')
   await expect(page.locator('.desktop-sidebar .save-status')).toHaveClass(/save-saved/)
-  await page.goto('/sauvegarde')
+  await page.goto('/backup')
   const cancelledDialog = page.waitForEvent('dialog')
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
@@ -214,20 +214,20 @@ test('restores an exported budget only after confirmation', async ({ page }) => 
   })
   await (await cancelledDialog).dismiss()
   await page.goto('/')
-  await expect(income).toHaveValue('99,00')
+  await expect(income).toHaveValue('99.00')
 
-  await page.goto('/sauvegarde')
+  await page.goto('/backup')
   page.once('dialog', (dialog) => dialog.accept())
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: contents,
   })
-  await expect(page.getByRole('status')).toContainText('ont été restaurés')
+  await expect(page.getByRole('status')).toContainText('have been restored')
   await page.goto('/')
-  await expect(income).toHaveValue('1234,56')
+  await expect(income).toHaveValue('1234.56')
   await page.reload()
-  await expect(income).toHaveValue('1234,56')
+  await expect(income).toHaveValue('1234.56')
 })
 
 test('serves an installable manifest and correctly sized PNG icons', async ({ request }) => {
@@ -235,10 +235,10 @@ test('serves an installable manifest and correctly sized PNG icons', async ({ re
   expect(response.ok()).toBe(true)
   const manifest = await response.json()
   expect(manifest).toMatchObject({
-    name: 'Mon Budget',
+    name: 'Finance',
     display: 'standalone',
     start_url: '/',
-    lang: 'fr',
+    lang: 'en',
     icons: expect.arrayContaining([
       expect.objectContaining({ sizes: '192x192', type: 'image/png' }),
       expect.objectContaining({
@@ -250,7 +250,7 @@ test('serves an installable manifest and correctly sized PNG icons', async ({ re
   })
 
   for (const size of [192, 512]) {
-    const icon = await request.get(`/budget-icon-${size}.png`)
+    const icon = await request.get(`/finance-icon-${size}.png`)
     expect(icon.ok()).toBe(true)
     const png = await icon.body()
     expect(png.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a')

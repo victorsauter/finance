@@ -1,7 +1,8 @@
 export type ThemePreference = 'system' | 'light' | 'dark'
 export type ResolvedTheme = Exclude<ThemePreference, 'system'>
 
-export const THEME_STORAGE_KEY = 'mon-budget-theme'
+export const THEME_STORAGE_KEY = 'finance-theme'
+export const LEGACY_THEME_STORAGE_KEY = 'mon-budget-theme'
 export const DARK_MODE_QUERY = '(prefers-color-scheme: dark)'
 
 export function isThemePreference(value: unknown): value is ThemePreference {
