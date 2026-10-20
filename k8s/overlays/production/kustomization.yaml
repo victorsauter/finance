@@ -1,5 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: finance
 
 resources:
   - ../../base
@@ -8,5 +9,5 @@ resources:
 # Replace the registry path and immutable version before deployment.
 images:
   - name: finance
-    newName: registry.example.com/finance
-    newTag: "0.1.0"
+    newName: ghcr.io/victorsauter/finance
+    newTag: "704a3a3db6a13d437e2cbdde9bd3f0766548cd68"
