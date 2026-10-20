@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="background" x1="74" y1="54" x2="442" y2="458" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset=".52" stop-color="#725FFF"/>
+      <stop offset="1" stop-color="#A555ED"/>
+    </linearGradient>
+    <linearGradient id="wallet" x1="138" y1="137" x2="381" y2="382" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".96"/>
+      <stop offset="1" stop-color="#E8ECFF" stop-opacity=".84"/>
+    </linearGradient>
+    <filter id="shadow" x="90" y="103" width="343" height="326" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="24" stdDeviation="21" flood-color="#27205F" flood-opacity=".34"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#11162A"/>
+  <rect x="18" y="18" width="476" height="476" rx="102" fill="url(#background)"/>
+  <circle cx="410" cy="104" r="122" fill="#75D8FF" fill-opacity=".3"/>
+  <circle cx="92" cy="444" r="142" fill="#CB76FF" fill-opacity=".25"/>
+  <g filter="url(#shadow)">
+    <path d="M132 174c0-31 25-56 56-56h174c24 0 43 19 43 43v212c0 18-15 33-33 33H188c-31 0-56-25-56-56V174Z" fill="url(#wallet)"/>
+    <path d="M132 187c0-38 31-69 69-69h163v58H197c-22 0-40 18-40 40v6c-15-7-25-20-25-35Z" fill="#FFFFFF" fill-opacity=".7"/>
+    <path d="M315 224h92c16 0 29 13 29 29v72c0 16-13 29-29 29h-92c-36 0-65-29-65-65s29-65 65-65Z" fill="#171C3C" fill-opacity=".86"/>
+    <circle cx="322" cy="289" r="17" fill="#A994FF"/>
+    <circle cx="322" cy="289" r="8" fill="#FFFFFF"/>
+  </g>
+</svg>
