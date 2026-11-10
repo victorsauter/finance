@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "d3-sankey": "^0.12.3",
     "dexie": "^4.4.6",
     "lucide-react": "^1.60.0",

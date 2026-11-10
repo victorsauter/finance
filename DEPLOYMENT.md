@@ -1,7 +1,9 @@
 # Deploy Finance on Kubernetes
 
 Build the static frontend into a non-root Nginx container listening on port 8080.
-Browser data stays in IndexedDB until an API and server database are added.
+Without public Supabase build configuration, this image runs in local-only
+mode. The recommended Netlify/Supabase setup is documented in
+[`SUPABASE.md`](./SUPABASE.md).
 
 ## Prerequisites
 
@@ -39,7 +41,9 @@ For updates, publish a new immutable image tag, update the overlay and repeat
 the apply and rollout commands. Worker nodes, networking, storage and backups
 are billed separately from the shared control plane.
 
-## Future database
+## Optional cloud sync
 
-Add an authenticated API for synchronisation. Keep PostgreSQL private, use a
-persistent volume and encrypted backups, and keep database credentials outside Git.
+Supabase provides authenticated sync independently of Kubernetes. The current
+Docker build does not inject its public Vite variables; add explicit build args
+if you choose this hosting route. Never inject database passwords or service-role
+keys. DNS, workers and Kubernetes storage are not required by the Netlify setup.

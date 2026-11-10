@@ -1,0 +1,32 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Publishable credentials are public browser configuration, never admin secrets.
+[context.production.environment]
+  VITE_SUPABASE_URL = "https://dqaoxjedszryzgiojreb.supabase.co"
+  VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lwX7fKZLngOt7nWjftxoyA__DX-KSuo"
+
+# Previews remain local-only until a separate staging project is configured.
+[context.deploy-preview.environment]
+  VITE_SUPABASE_URL = ""
+  VITE_SUPABASE_PUBLISHABLE_KEY = ""
+
+[context.branch-deploy.environment]
+  VITE_SUPABASE_URL = ""
+  VITE_SUPABASE_PUBLISHABLE_KEY = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

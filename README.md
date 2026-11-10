@@ -1,7 +1,7 @@
 # Finance
 
-A English-language, local-first budget planner built with React, TypeScript and
-Vite. The installable PWA works offline and stores data on the current device.
+An English-language, local-first budget planner built with React, TypeScript and
+Vite. The installable PWA works offline, with optional private Supabase sync.
 
 ## Features
 
@@ -9,13 +9,15 @@ Vite. The installable PWA works offline and stores data on the current device.
 - Reorderable income, accounts, expense categories and planned expenses.
 - Integer-cent calculations, allocation alerts and an accessible Sankey diagram.
 - Local IndexedDB persistence and validated, versioned JSON backup and restore.
+- Email sign-in, separate guest/account caches, explicit guest import, offline
+  cloud outbox and manual conflict resolution in **Account**.
 - Revolut CSV preview, duplicate detection, classification and monthly actuals.
 - Persistent system, light and dark themes with a blue-violet glass interface.
 - Floating desktop sidebar and mobile dock, iOS safe areas and 44px primary targets.
 - Reduced-motion, reduced-transparency and increased-contrast styles.
 
-No server, bank credentials, live banking connection or shared-household service
-is implemented. No personal balances, statements or archived screenshots are
+No bank connection or shared-household service is implemented. No personal
+balances, statements or archived screenshots are
 included. A fresh installation starts with zero amounts.
 
 ## Development
@@ -28,6 +30,12 @@ npm run dev
 ```
 
 Open the local URL printed by Vite.
+
+Without Supabase environment variables, the app stays local-only. To enable
+cloud sync, configure `.env.local` using `.env.example` and follow
+[`SUPABASE.md`](./SUPABASE.md). Never use a database password or service-role key
+in a frontend build. The checked-in Netlify configuration enables the connected
+project for production builds and leaves previews local-only.
 
 | Command | Purpose |
 | --- | --- |
@@ -85,13 +93,16 @@ expense, income and transfer classification afterward.
 - Imported actuals remain separate from planned expenses. An import can be undone
   immediately, and individual transactions can be deleted.
 
-Files are parsed locally and are not uploaded to a server.
+Files are parsed locally and are not uploaded. Confirmed transaction records,
+including their source filename, sync only after you enable account sync.
 
 ## Data and backups
 
 Budgets, imported transactions and classification are stored in IndexedDB.
 Theme preferences are stored separately in local storage. Clearing site data,
 changing browser or changing the site's origin does not transfer these records.
+Signed-in accounts can explicitly enable cloud sync to recover their latest
+synced data on another device. Guest data is never uploaded just by signing in.
 Browsers, especially iOS, may evict local data: export JSON backups regularly
 using the **Backup** page and keep them outside the browser.
 
@@ -104,7 +115,8 @@ flowchart LR
   UI[React interface] --> Context[Application state]
   Context --> Domain[Budget and transaction rules]
   Context --> Repository[BudgetRepository]
-  Repository --> Storage[(IndexedDB / Dexie)]
+  Repository --> Storage[(Guest or account IndexedDB)]
+  Storage <-->|Opt-in account sync| Cloud[(Supabase Auth + private document)]
   Context <--> Backup[Validated JSON backup]
 ```
 

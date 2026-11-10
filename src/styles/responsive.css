@@ -188,7 +188,7 @@
     z-index: 50;
     display: grid;
     width: min(22rem, calc(100vw - 1.5rem));
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.25rem;
     padding: 0.35rem;
     border-radius: 1.8rem;

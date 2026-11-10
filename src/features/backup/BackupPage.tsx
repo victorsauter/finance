@@ -3,21 +3,13 @@ import { Download, FileUp, ShieldCheck, Trash2 } from 'lucide-react'
 import { useBudget } from '../../app/budget-context'
 import { CURRENT_SCHEMA_VERSION } from '../../domain/budget/models'
 import { parseAppData } from '../../domain/budget/schema'
-
-function downloadJson(filename: string, value: unknown) {
-  const blob = new Blob([JSON.stringify(value, null, 2)], {
-    type: 'application/json;charset=utf-8',
-  })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
-}
+import { downloadJson } from './download'
+import { useSync } from '../../app/sync-context'
 
 export function BackupPage() {
   const { data, replaceData, resetData } = useBudget()
+  const { state: sync } = useSync()
+  const cloudEnabled = sync.status !== 'disabled'
   const inputRef = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
@@ -40,11 +32,12 @@ export function BackupPage() {
       const transactionCount = parsed.importedTransactions.length
       if (
         !window.confirm(
-          `Replace current data with ${budgetCount} budget(s) and ${transactionCount} transaction(s) from “${file.name}”?`,
+          `Replace current data with ${budgetCount} budget(s) and ${transactionCount} transaction(s) from “${file.name}”?${cloudEnabled ? ' This replacement will sync to your other devices. A backup of the current data will be downloaded first.' : ''}`,
         )
       ) {
         return
       }
+      if (cloudEnabled) downloadJson('finance-before-restore.json', data)
       await replaceData(parsed)
       setIsError(false)
       setMessage(
@@ -63,14 +56,17 @@ export function BackupPage() {
   const reset = async () => {
     if (
       !window.confirm(
-        'Delete all local budgets and create an empty month? Export a backup before continuing.',
+        cloudEnabled
+          ? 'Reset all budgets and transactions in this account to an empty month? This reset will sync to your other devices. A backup will be downloaded first.'
+          : 'Delete all local budgets and create an empty month? Export a backup before continuing.',
       )
     ) {
       return
     }
+    if (cloudEnabled) downloadJson('finance-before-reset.json', data)
     await resetData()
     setIsError(false)
-    setMessage('Local data has been reset.')
+    setMessage(cloudEnabled ? 'Account data has been reset locally. Check the sync status before closing this device.' : 'Local data has been reset.')
   }
 
   return (
@@ -84,8 +80,9 @@ export function BackupPage() {
           <h1>Backup and restore</h1>
         </div>
         <p>
-          Your budget stays in this browser. Keep a JSON backup regularly,
-          especially on iPhone, where the system can clear unused site storage.
+          Keep a JSON backup regularly. {cloudEnabled
+            ? 'Cloud sync copies changes between your devices; it is not a historical backup. Restores and resets here affect your synced account.'
+            : 'These budgets are stored in this browser. On iPhone, the system can clear unused site storage.'}
         </p>
       </div>
 
@@ -155,7 +152,7 @@ export function BackupPage() {
           <p className="eyebrow">Danger zone</p>
           <h2>Reset the app</h2>
           <p>
-            All budgets and imported transactions on this device will be
+            All budgets and imported transactions {cloudEnabled ? 'in this synced account' : 'on this device'} will be
             replaced with an empty month.
           </p>
         </div>
