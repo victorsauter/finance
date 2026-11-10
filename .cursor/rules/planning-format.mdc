@@ -1,0 +1,22 @@
+---
+description: Write plans with a French decision overview and visual diagram before the English technical detail.
+alwaysApply: true
+---
+
+# Planning document format
+
+When creating or updating a plan for this project:
+
+1. Start with a plain-language French section for the project owner. Explain the
+   goal, the proposed direction, what changes, what stays, tradeoffs and decisions
+   needed. Make it easy to evaluate the proposal quickly.
+2. Include a readable visual diagram of the proposed architecture or before/after
+   changes. Prefer a compact Mermaid diagram embedded in the plan.
+3. Follow with an English technical section covering implementation, dependencies,
+   data migration, validation, rollout and recovery as relevant to the task.
+4. Use emojis sparingly, only when they convey useful meaning, such as a section's
+   purpose or status. Do not add decorative emojis by default.
+
+For example, a database integration plan first explains in French how data moves
+between devices and the backend, then details schema, access control and sync in
+English. This format applies to plans, not to application copy or every answer.

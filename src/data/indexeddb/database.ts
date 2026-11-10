@@ -1,9 +1,12 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { AppData } from '../../domain/budget/models'
+import type { SyncMetadata } from '../cloud/types'
 
 export interface AppStateRecord {
   id: 'primary'
   data: AppData
+  sync?: SyncMetadata
+  writer?: string
 }
 
 export const FINANCE_DATABASE_NAME = 'finance'

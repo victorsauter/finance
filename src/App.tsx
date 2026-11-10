@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   ReceiptText,
   WalletCards,
+  UserRound,
   type LucideProps,
 } from 'lucide-react'
 import {
@@ -16,12 +17,21 @@ import {
   Route,
   Routes,
 } from 'react-router-dom'
-import { BudgetProvider } from './app/BudgetContext'
+import { AuthProvider } from './app/AuthProvider'
+import { BudgetScope } from './app/BudgetScope'
+import { useAuth } from './app/auth-context'
+import { useSync } from './app/sync-context'
 import { useBudget, type SaveStatus } from './app/budget-context'
 import { ThemeProvider } from './app/ThemeProvider'
 import { ThemeSwitcher } from './components/ui/ThemeSwitcher'
 import { BackupPage } from './features/backup/BackupPage'
 import { BudgetPage } from './features/dashboard/BudgetPage'
+
+const AccountPage = lazy(() =>
+  import('./features/account/AccountPage').then((module) => ({
+    default: module.AccountPage,
+  })),
+)
 
 const TransactionsPage = lazy(() =>
   import('./features/transactions/TransactionsPage').then((module) => ({
@@ -38,6 +48,7 @@ const navigationItems: Array<{
   { to: '/', label: 'Budget', end: true, Icon: WalletCards },
   { to: '/transactions', label: 'Transactions', Icon: ReceiptText },
   { to: '/backup', label: 'Backup', Icon: Database },
+  { to: '/account', label: 'Account', Icon: UserRound },
 ]
 
 const saveStatusContent: Record<
@@ -136,6 +147,8 @@ function Navigation({
 
 function AppShell() {
   const { saveStatus, error, dismissError } = useBudget()
+  const { session } = useAuth()
+  const { state: sync } = useSync()
 
   return (
     <div className="app-shell">
@@ -148,7 +161,7 @@ function AppShell() {
             <SaveStatusIndicator status={saveStatus} />
           </div>
           <ThemeSwitcher />
-          <p>Your data stays on this device.</p>
+          <p>{session ? `Cloud sync: ${sync.status}` : 'Your guest data stays on this device.'}</p>
         </div>
       </aside>
 
@@ -164,6 +177,13 @@ function AppShell() {
       </header>
 
       <div className="app-canvas">
+        {session && sync.status !== 'synced' && <div className="notice account-sync-notice" role="status">
+          {sync.status === 'disabled' ? 'Cloud sync needs your confirmation.'
+            : sync.status === 'conflict' ? 'Sync paused: another device has newer changes.'
+              : sync.status === 'error' ? 'Cloud sync failed. Local changes are safe.'
+                : sync.status === 'syncing' ? 'Syncing your account…' : 'Local changes are waiting to sync.'}{' '}
+          <NavLink to="/account">Manage sync</NavLink>
+        </div>}
         {error && (
           <div className="global-error" role="alert">
             <AlertCircle aria-hidden="true" size={17} />
@@ -190,6 +210,7 @@ function AppShell() {
             <Route path="/" element={<BudgetPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/backup" element={<BackupPage />} />
+            <Route path="/account" element={<AccountPage />} />
             <Route path="/operations" element={<Navigate to="/transactions" replace />} />
             <Route path="/sauvegarde" element={<Navigate to="/backup" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -197,7 +218,7 @@ function AppShell() {
         </Suspense>
 
         <footer className="app-footer">
-          <span>Local and private data.</span>
+          <span>{session ? 'Private account data. Offline edits sync when connected.' : 'Local and private guest data.'}</span>
           <NavLink to="/backup">Create a backup</NavLink>
         </footer>
       </div>
@@ -210,11 +231,13 @@ function AppShell() {
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <BudgetProvider>
-          <AppShell />
-        </BudgetProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <BudgetScope>
+            <AppShell />
+          </BudgetScope>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

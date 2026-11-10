@@ -7,6 +7,8 @@ import {
   type ReactNode,
 } from 'react'
 import { LocalBudgetStore } from '../data/LocalBudgetStore'
+import type { BudgetRepository } from '../data/BudgetRepository'
+import { CloudBudgetRepository } from '../data/cloud/CloudBudgetRepository'
 import {
   IndexedDbBudgetRepository,
   loadLegacyBudgetData,
@@ -54,10 +56,14 @@ function normalizeActiveBudget(data: AppData): AppData {
   }
 }
 
-export function BudgetProvider({ children }: { children: ReactNode }) {
+export function BudgetProvider({ children, repository, migrateLegacy = true }: {
+  children: ReactNode
+  repository?: BudgetRepository
+  migrateLegacy?: boolean
+}) {
   const store = useMemo(
-    () => new LocalBudgetStore(new IndexedDbBudgetRepository()),
-    [],
+    () => new LocalBudgetStore(repository ?? new IndexedDbBudgetRepository()),
+    [repository],
   )
   const [data, setData] = useState<AppData | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('loading')
@@ -67,6 +73,16 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   const initializationRef = useRef<Promise<AppData> | null>(null)
 
   useEffect(() => {
+    if (!(repository instanceof CloudBudgetRepository)) return
+    const unwatch = repository.watch((next) => {
+      dataRef.current = next
+      setData(next)
+    })
+    void repository.sync()
+    return unwatch
+  }, [repository])
+
+  useEffect(() => {
     let cancelled = false
 
     async function initialize() {
@@ -74,7 +90,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         if (!initializationRef.current) {
           initializationRef.current = (async () => {
             const persisted = await store.load()
-            const legacyData = persisted ? null : await loadLegacyBudgetData()
+            const legacyData = persisted || !migrateLegacy ? null : await loadLegacyBudgetData()
             const initial = normalizeActiveBudget(
               persisted ?? legacyData ?? createInitialAppData(),
             )
@@ -104,16 +120,21 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [store])
+  }, [store, migrateLegacy])
 
   useEffect(() => {
-    const closeStore = () => store.close()
+    // A page can return from the back/forward cache without React remounting.
+    // Cloud watchers are disposed on scope unmount, not on a temporary pagehide.
+    const closeStore = () => {
+      if (!(repository instanceof CloudBudgetRepository)) store.close()
+    }
     window.addEventListener('pagehide', closeStore)
     return () => window.removeEventListener('pagehide', closeStore)
-  }, [store])
+  }, [store, repository])
 
   const persist = useCallback(
     (nextData: AppData) => {
+      if (repository instanceof CloudBudgetRepository) repository.markLocalEdit()
       const revision = ++saveRevision.current
       setSaveStatus('saving')
       void store
@@ -130,7 +151,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
           setSaveStatus('error')
         })
     },
-    [store],
+    [store, repository],
   )
 
   const commit = useCallback(

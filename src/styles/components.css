@@ -258,3 +258,56 @@ th:last-child {
   gap: 0.6rem;
   color: var(--muted);
 }
+/* Account forms share the existing responsive settings layout. */
+.settings-card.account-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.account-page .settings-card + .settings-card {
+  margin-top: 1rem;
+}
+
+.settings-card.account-section > p,
+.settings-card.account-section > h2 {
+  margin: 0;
+}
+
+.account-form,
+.account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.account-page button {
+  white-space: normal;
+  min-height: 44px;
+}
+
+.account-sync-notice {
+  flex-wrap: wrap;
+  margin: 1rem clamp(1.25rem, 3vw, 3rem) 0;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+}
