@@ -37,3 +37,5 @@ kubeconfig
 
 # Layout captures
 captures
+captures-before
+captures-after

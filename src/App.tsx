@@ -81,7 +81,7 @@ function ConnectionStatus({ compact = false }: { compact?: boolean }) {
       aria-label={compact ? 'Offline' : undefined}
     >
       <CloudOff aria-hidden="true" size={14} />
-      {!compact && 'Offline'}
+      {!compact && <span className="offline-label">Offline</span>}
     </span>
   )
 }
