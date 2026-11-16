@@ -34,3 +34,6 @@ kubeconfig
 *.njsproj
 *.sln
 *.sw?
+
+# Layout captures
+captures
