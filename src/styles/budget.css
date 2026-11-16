@@ -557,16 +557,91 @@ input[aria-invalid='true'] {
 
 .chart-scroll {
   width: 100%;
-  min-height: 26.5rem;
   margin-top: 0.8rem;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: thin;
 }
 
 .sankey-chart {
   display: block;
-  max-width: none;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Phone layout: one block per source, bars show each target's share. */
+.flow-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.flow-group h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+
+.flow-group h3 > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.flow-group ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flow-group li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 0.75rem;
+  padding: 0.5rem 0.65rem 0.7rem;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+}
+
+.flow-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.flow-amount {
+  color: var(--muted-strong);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.flow-bar {
+  position: absolute;
+  right: auto;
+  bottom: 0.3rem;
+  left: 0.65rem;
+  height: 0.28rem;
+  max-width: calc(100% - 1.3rem);
+  background: var(--flow-expense);
+  border-radius: var(--radius-pill);
+}
+
+.flow-group li[data-kind='account'] .flow-bar {
+  background: var(--flow-account);
+}
+
+.flow-group li[data-kind='saving'] .flow-bar {
+  background: var(--flow-saving);
+}
+
+.flow-group li[data-kind='warning'] .flow-bar {
+  background: var(--flow-warning);
+}
+
+.flow-group li[data-kind='budget'] .flow-bar {
+  background: var(--flow-budget);
 }
 
 .sankey-link {
@@ -584,6 +659,11 @@ input[aria-invalid='true'] {
   font-family: inherit;
   font-size: 0.64rem;
   font-weight: 650;
+  /* Halo keeps labels readable where they cross a flow band. */
+  paint-order: stroke;
+  stroke: var(--surface-raised);
+  stroke-linejoin: round;
+  stroke-width: 3px;
   pointer-events: none;
 }
 
@@ -788,14 +868,6 @@ input[aria-invalid='true'] {
   .editable-row .row-actions {
     grid-column: 1 / -1;
     justify-content: flex-end;
-  }
-
-  .chart-scroll {
-    min-height: 25rem;
-    margin-right: -1rem;
-    margin-left: -1rem;
-    width: calc(100% + 2rem);
-    padding-inline: 1rem;
   }
 
   .month-actions {

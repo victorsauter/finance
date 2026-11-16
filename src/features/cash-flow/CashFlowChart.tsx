@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   sankey,
   sankeyLinkHorizontal,
@@ -10,7 +10,13 @@ import type {
   FlowNode,
   FlowNodeKind,
 } from '../../domain/budget/chart-model'
+import {
+  SANKEY_MIN_WIDTH,
+  sankeyHeight,
+  truncateLabel,
+} from '../../domain/budget/chart-layout'
 import { formatMoney } from '../../domain/budget/money'
+import { FlowList } from './FlowList'
 
 type NodeDatum = FlowNode & SankeyExtraProperties
 type LinkDatum = SankeyExtraProperties
@@ -29,13 +35,15 @@ function endpointName(endpoint: LayoutLink['source']): string {
   return typeof endpoint === 'object' ? endpoint.name : String(endpoint)
 }
 
+/** Width of the container, measured before first paint to avoid a flash. */
 function useContainerWidth() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [width, setWidth] = useState(860)
+  const [width, setWidth] = useState<number | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = containerRef.current
     if (!element) return
+    setWidth(element.getBoundingClientRect().width)
     const observer = new ResizeObserver(([entry]) => {
       if (entry) setWidth(entry.contentRect.width)
     })
@@ -46,35 +54,67 @@ function useContainerWidth() {
   return { containerRef, width }
 }
 
+const NODE_WIDTH = 18
+const EDGE = 16
+// Average glyph width of the 0.64rem bold labels, used to fit names.
+const CHAR_WIDTH = 5.8
+// Room kept on the right so the last column's labels also sit beside their node.
+const LABEL_MARGIN = 118
+const LABEL_GAP = 8
+
 export function CashFlowChart({ model }: { model: CashFlowModel }) {
-  const { containerRef, width: availableWidth } = useContainerWidth()
-  const chartWidth = Math.max(760, Math.floor(availableWidth))
-  const chartHeight = Math.max(430, model.nodes.length * 34)
+  const { containerRef, width } = useContainerWidth()
+  const chartWidth = Math.floor(width ?? 0)
+  const chartHeight = sankeyHeight(model.nodes)
+  const isNarrow = width !== null && width < SANKEY_MIN_WIDTH
+  const showSankey = width !== null && !isNarrow && model.links.length > 0
 
   const graph = useMemo(() => {
-    if (model.links.length === 0) return null
+    if (!showSankey) return null
 
     return sankey<NodeDatum, LinkDatum>()
       .nodeId((node) => node.id)
-      .nodeWidth(18)
-      .nodePadding(18)
+      .nodeWidth(NODE_WIDTH)
+      .nodePadding(26)
       .extent([
-        [16, 20],
-        [chartWidth - 16, chartHeight - 20],
+        [EDGE, 20],
+        [chartWidth - EDGE - LABEL_MARGIN, chartHeight - 20],
       ])({
       nodes: model.nodes.map((node) => ({ ...node })),
       links: model.links.map((link) => ({ ...link })),
     })
-  }, [chartHeight, chartWidth, model])
+  }, [chartHeight, chartWidth, model, showSankey])
 
   const linkPath = useMemo(
     () => sankeyLinkHorizontal<NodeDatum, LinkDatum>(),
     [],
   )
 
+  // Every label sits right of its node and may use the space up to the next
+  // column (or the right margin for the last one), no more.
+  const lastLayer = graph
+    ? Math.max(...graph.nodes.map((node) => node.layer ?? 0))
+    : 0
+  const columnSpacing =
+    lastLayer > 0
+      ? (chartWidth - EDGE * 2 - LABEL_MARGIN - NODE_WIDTH) / lastLayer
+      : 0
+  const charsFor = (room: number) =>
+    Math.max(6, Math.floor((room - LABEL_GAP - 4) / CHAR_WIDTH))
+  const middleLabelChars = charsFor(columnSpacing - NODE_WIDTH)
+  const lastLabelChars = charsFor(LABEL_MARGIN)
+
+  if (width !== null && model.links.length > 0 && isNarrow) {
+    return (
+      <div ref={containerRef} className="chart-scroll">
+        <FlowList model={model} />
+      </div>
+    )
+  }
+
   return (
     <div ref={containerRef} className="chart-scroll">
-      {!graph ? (
+      {width === null ? null : !graph ? (
         <div className="chart-empty">
           <div aria-hidden="true">↗</div>
           <h3>Your cash flow will appear here</h3>
@@ -121,7 +161,9 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
               const x1 = node.x1 ?? 0
               const y0 = node.y0 ?? 0
               const y1 = node.y1 ?? 0
-              const onLeft = x0 < chartWidth / 2
+              const labelX = x1 + LABEL_GAP
+              const maxChars =
+                (node.layer ?? 0) >= lastLayer ? lastLabelChars : middleLabelChars
               return (
                 <g key={node.id} className="sankey-node">
                   <rect
@@ -132,14 +174,12 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
                     rx="5"
                     fill={nodeColors[node.kind]}
                   />
-                  <text
-                    x={onLeft ? x1 + 8 : x0 - 8}
-                    y={(y0 + y1) / 2}
-                    dy="0.35em"
-                    textAnchor={onLeft ? 'start' : 'end'}
-                  >
-                    <tspan>{node.name}</tspan>
-                    <tspan className="node-value" dx="5">
+                  <text x={labelX} y={(y0 + y1) / 2}>
+                    <title>{`${node.name} ${formatMoney(node.value ?? 0)}`}</title>
+                    <tspan x={labelX} dy="-0.2em">
+                      {truncateLabel(node.name, maxChars)}
+                    </tspan>
+                    <tspan className="node-value" x={labelX} dy="1.25em">
                       {formatMoney(node.value ?? 0)}
                     </tspan>
                   </text>

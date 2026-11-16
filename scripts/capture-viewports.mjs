@@ -75,6 +75,22 @@ function inspectLayout() {
       }
     }
   }
+  // Sankey labels must not sit on top of each other.
+  const labels = [...document.querySelectorAll('.sankey-node text')].map((t) => ({
+    el: t,
+    r: t.getBoundingClientRect(),
+  }))
+  for (let i = 0; i < labels.length; i++) {
+    for (let j = i + 1; j < labels.length; j++) {
+      const a = labels[i].r
+      const b = labels[j].r
+      const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left)
+      const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+      if (ox > 1 && oy > 1) {
+        problems.push(`sankey labels overlap ("${labels[i].el.textContent.slice(0, 24)}" / "${labels[j].el.textContent.slice(0, 24)}")`)
+      }
+    }
+  }
   const canvas = document.querySelector('.app-canvas')
   if (canvas) {
     const c = canvas.getBoundingClientRect()
@@ -84,6 +100,37 @@ function inspectLayout() {
     }
   }
   return [...new Set(problems)]
+}
+
+async function seedRichBudget(page) {
+  const commit = async (locator, value) => {
+    await locator.fill(value)
+    await locator.press('Tab')
+  }
+  const add = page.getByRole('button', { name: 'Add', exact: true })
+
+  await commit(page.locator('input[aria-label^="Income name"]').first(), 'Monthly salary from Example International Holdings')
+  await commit(page.locator('input[aria-label^="Amount for"]').first(), '4200')
+  await add.nth(0).click() // second income
+  await commit(page.locator('input[aria-label^="Amount for"]').nth(1), '800')
+
+  await add.nth(1).click() // two more accounts
+  await add.nth(1).click()
+  await commit(page.locator('input[aria-label^="Account name"]').nth(1), 'Joint account with a very long label')
+  await commit(page.locator('input[aria-label^="Account name"]').nth(2), 'Savings')
+  const transfers = page.locator('input[aria-label^="Transfer to"]')
+  await commit(transfers.nth(0), '1800')
+  await commit(transfers.nth(1), '1200')
+  await commit(transfers.nth(2), '600')
+
+  await page.getByRole('button', { name: 'Category' }).click()
+  await page.getByRole('button', { name: 'Add expense' }).first().click()
+  await page.getByRole('button', { name: 'Add expense' }).first().click()
+  await commit(page.locator('input[aria-label^="Expense name"]').first(), 'Mortgage and home insurance payments')
+
+  const amounts = page.locator('input[aria-label^="Amount for"]')
+  const count = await amounts.count()
+  for (let i = 2; i < count; i++) await commit(amounts.nth(i), String(90 + i * 35))
 }
 
 mkdirSync(outDir, { recursive: true })
@@ -103,6 +150,7 @@ for (const theme of themes) {
       try { window.localStorage.setItem('finance-theme', value) } catch { /* ignore */ }
     }, theme)
     const page = await context.newPage()
+    page.on('pageerror', (error) => console.log(`page error @ ${width}px (${theme}): ${error.message}`))
 
     await page.goto(baseUrl + '/')
     await page.getByLabel('Amount for Main income').fill('3500')
@@ -117,6 +165,16 @@ for (const theme of themes) {
       await page.screenshot({ path: join(outDir, file), fullPage: true })
       report.push({ page: name, width, theme, problems })
     }
+
+    // Busy budget: long names, several accounts and categories, so the Sankey
+    // and the editor are checked with realistic content, not just one income.
+    await page.goto(baseUrl + '/')
+    await page.getByRole('heading', { name: 'Build your month' }).waitFor()
+    await seedRichBudget(page)
+    await page.waitForTimeout(500)
+    const richProblems = await page.evaluate(inspectLayout)
+    await page.screenshot({ path: join(outDir, `budget-rich-${width}-${theme}.png`), fullPage: true })
+    report.push({ page: 'budget-rich', width, theme, problems: richProblems })
     await context.close()
   }
 }
