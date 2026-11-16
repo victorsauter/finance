@@ -18,7 +18,7 @@
   top: 1.25rem;
   bottom: 1.25rem;
   left: 1.25rem;
-  z-index: 40;
+  z-index: var(--z-sidebar);
   display: flex;
   width: 13.75rem;
   flex-direction: column;
@@ -243,7 +243,7 @@
 .global-error {
   position: sticky;
   top: 0;
-  z-index: 35;
+  z-index: var(--z-banner);
   display: flex;
   justify-content: center;
   align-items: center;

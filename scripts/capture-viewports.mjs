@@ -62,6 +62,19 @@ function inspectLayout() {
       }
     }
   }
+  // Content must stay inside the card that holds it.
+  const cards = '.editor-card, .chart-card, .allocation-card, .import-card, .transactions-card, .settings-card'
+  for (const card of document.querySelectorAll(cards)) {
+    const cr = card.getBoundingClientRect()
+    for (const el of card.querySelectorAll('*')) {
+      if (!el.checkVisibility() || clips(el) && el.closest('.chart-scroll, .transactions-table')) continue
+      const r = el.getBoundingClientRect()
+      if (r.width === 0 || r.height === 0) continue
+      if (r.right > cr.right + 1) {
+        problems.push(`${label(el)} sticks out of ${label(card)} (${Math.round(r.right - cr.right)}px)`)
+      }
+    }
+  }
   const canvas = document.querySelector('.app-canvas')
   if (canvas) {
     const c = canvas.getBoundingClientRect()

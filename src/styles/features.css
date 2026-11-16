@@ -1,6 +1,6 @@
 .month-toolbar {
   position: relative;
-  z-index: 12;
+  z-index: var(--z-toolbar);
   display: grid;
   grid-template-columns: minmax(17rem, 1fr) auto auto;
   align-items: center;
@@ -94,6 +94,7 @@
 
 .month-actions-menu {
   position: absolute;
+  z-index: var(--z-popover);
   top: calc(100% + 0.55rem);
   right: 0;
   display: grid;
@@ -260,15 +261,41 @@
   color: var(--danger-strong);
 }
 
+/* The workspace answers to its own width, not the window's: the sidebar and
+   page padding change how much room it really gets. Below 62rem the editor
+   and the visualisations stack; the columns are never forced wider than the
+   space available. */
+.workspace {
+  container-name: workspace;
+  container-type: inline-size;
+}
+
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(25rem, 0.8fr) minmax(32rem, 1.2fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 0.9rem;
 }
 
+.workspace-grid > * {
+  min-width: 0;
+}
+
+@container workspace (min-width: 62rem) {
+  .workspace-grid {
+    grid-template-columns: minmax(30rem, 0.85fr) minmax(0, 1.15fr);
+  }
+}
+
+@container workspace (max-width: 61.99rem) {
+  .allocation-card {
+    order: -1;
+  }
+}
+
 .visualization-column {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
 }
 
@@ -356,7 +383,7 @@
 
 .editable-row {
   display: grid;
-  grid-template-columns: minmax(10rem, 1fr) minmax(7rem, 8.5rem) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(5.5rem, 8.5rem) auto;
   align-items: start;
   gap: 0.48rem;
 }
@@ -464,11 +491,13 @@ input[aria-invalid='true'] {
 }
 
 .category-heading {
+  flex-wrap: wrap;
   align-items: start;
 }
 
 .category-title {
-  flex: 1;
+  flex: 1 1 10rem;
+  min-width: 0;
 }
 
 .category-title > .field-stack {
