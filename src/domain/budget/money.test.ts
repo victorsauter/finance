@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMoney, parseMoneyInput } from './money'
+import { formatMoney, MAX_AMOUNT_CENTS, parseMoneyInput } from './money'
 
 describe('money helpers', () => {
   it('parses French decimal input into integer cents', () => {
@@ -12,6 +12,12 @@ describe('money helpers', () => {
     expect(parseMoneyInput('-1')).toBeNull()
     expect(parseMoneyInput('12,345')).toBeNull()
     expect(parseMoneyInput('abc')).toBeNull()
+  })
+
+  it('rejects amounts above the cap that would break saving', () => {
+    expect(parseMoneyInput('1000000000')).toBe(MAX_AMOUNT_CENTS)
+    expect(parseMoneyInput('1000000000.01')).toBeNull()
+    expect(parseMoneyInput('99999999999999999999')).toBeNull()
   })
 
   it('formats euros using English conventions', () => {

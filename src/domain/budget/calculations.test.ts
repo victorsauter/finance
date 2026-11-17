@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateBudgetSummary } from './calculations'
+import { allocationUsagePercent, calculateBudgetSummary } from './calculations'
 import { createEmptyBudgetMonth } from './factory'
 
 describe('calculateBudgetSummary', () => {
@@ -30,6 +30,18 @@ describe('calculateBudgetSummary', () => {
     expect(summary.remainingCents).toBe(-25_00)
     expect(summary.savingsRate).toBe(-25)
     expect(summary.unassignedExpenseCents).toBe(125_00)
+  })
+
+  it('reports account usage as a percentage, or null without a transfer', () => {
+    expect(
+      allocationUsagePercent({ transferCents: 200_00, usageCents: 150_00 }),
+    ).toBe(75)
+    expect(
+      allocationUsagePercent({ transferCents: 100_00, usageCents: 125_00 }),
+    ).toBe(125)
+    expect(
+      allocationUsagePercent({ transferCents: 0, usageCents: 50_00 }),
+    ).toBeNull()
   })
 
   it('returns a zero savings rate for a budget without income', () => {

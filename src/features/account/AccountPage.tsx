@@ -6,6 +6,7 @@ import { BudgetDatabase } from '../../data/indexeddb/database'
 import { IndexedDbBudgetRepository } from '../../data/indexeddb/IndexedDbBudgetRepository'
 import type { AppData } from '../../domain/budget/models'
 import type { CloudSnapshot } from '../../data/cloud/types'
+import { useConfirm } from '../../components/ui/confirm-context'
 import { downloadJson } from '../backup/download'
 
 function counts(data: AppData) {
@@ -13,6 +14,7 @@ function counts(data: AppData) {
 }
 
 export function AccountPage() {
+  const confirm = useConfirm()
   const { client, session, error: authError, signOut } = useAuth()
   const { data } = useBudget()
   const { repository, state } = useSync()
@@ -69,10 +71,19 @@ export function AccountPage() {
     if (!repository) return
     const source = importGuest ? guest : data
     if (!source) return
-    const question = remote
-      ? 'Replace this device’s account budgets with its cloud copy? A JSON backup of this account’s current local budgets will be downloaded first. Guest budgets stay separate.'
-      : `Upload ${counts(source)} to your private Supabase account and enable sync? Future edits and confirmed resets will sync across devices.`
-    if (!window.confirm(question)) return
+    const confirmed = await confirm(remote
+      ? {
+        title: 'Use the cloud copy?',
+        message: 'This device’s account budgets will be replaced by the cloud copy. A JSON backup of this account’s current local budgets is downloaded first. Guest budgets stay separate.',
+        confirmLabel: 'Use cloud copy',
+        tone: 'danger',
+      }
+      : {
+        title: 'Enable cloud sync?',
+        message: `${counts(source)} will be uploaded to your private Supabase account. Future edits and confirmed resets will sync across devices.`,
+        confirmLabel: 'Upload and enable sync',
+      })
+    if (!confirmed) return
     if (importGuest || remote) downloadJson('finance-before-cloud-import.json', source)
     await repository.enable(importGuest ? source : undefined)
     setMessage('Cloud sync is enabled. Check the sync status before closing this device.')
@@ -107,7 +118,12 @@ export function AccountPage() {
         <p role="status">Sync status: {state.status === 'disabled' ? 'not enabled — choose below' : state.status}.</p>
         <div className="account-actions">
           <button className="secondary-button" disabled={busy} onClick={() => void run(async () => {
-            if (!window.confirm('Sign out on this device? Pending changes stay in this account’s local cache. Sign back into the same account to sync them. Guest data will remain separate.')) return
+            const confirmed = await confirm({
+              title: 'Sign out on this device?',
+              message: 'Pending changes stay in this account’s local cache. Sign back into the same account to sync them. Guest data will remain separate.',
+              confirmLabel: 'Sign out',
+            })
+            if (!confirmed) return
             await signOut()
           })}>Sign out on this device</button>
           {state.status !== 'disabled' && <button className="secondary-button" disabled={busy || state.status === 'syncing'}
@@ -139,12 +155,24 @@ export function AccountPage() {
             if (copy) downloadJson('finance-cloud-conflict.json', copy.data)
           })}>Download cloud copy</button>
           <button className="secondary-button" disabled={busy} onClick={() => void run(async () => {
-            if (!window.confirm('Replace this device’s pending edits with the latest cloud copy? A local backup will be downloaded first.')) return
+            const confirmed = await confirm({
+              title: 'Replace your pending edits?',
+              message: 'This device’s pending edits will be replaced by the latest cloud copy. A local backup is downloaded first.',
+              confirmLabel: 'Use cloud copy',
+              tone: 'danger',
+            })
+            if (!confirmed) return
             downloadJson('finance-before-cloud-replace.json', data)
             await repository?.useRemote()
           })}>Use cloud copy</button>
           <button className="danger-button" disabled={busy} onClick={() => void run(async () => {
-            if (!window.confirm('Replace the conflicting cloud version with this local copy? Its JSON backup will be downloaded first.')) return
+            const confirmed = await confirm({
+              title: 'Replace the cloud version?',
+              message: 'The conflicting cloud version will be replaced by this local copy. Its JSON backup is downloaded first.',
+              confirmLabel: 'Keep local copy',
+              tone: 'danger',
+            })
+            if (!confirmed) return
             const copy = await repository?.inspectRemote()
             if (copy) downloadJson('finance-before-local-replace.json', copy.data)
             await repository?.keepLocal()

@@ -178,6 +178,30 @@ test('keeps primary interactive targets at least 44 pixels', async ({
   }
 })
 
+test('asks in-app before deleting a month and cancels with Escape', async ({ page }) => {
+  await page.goto('/')
+  const deleteBudget = () => page.getByRole('button', { name: 'Delete budget' })
+
+  await page.getByLabel('Budget actions').click()
+  await expect(deleteBudget()).toBeDisabled() // the last budget is protected
+
+  await page.getByRole('button', { name: 'New month' }).click()
+  await expect(page.getByLabel('Active budget').locator('option')).toHaveCount(2)
+
+  await page.getByLabel('Budget actions').click()
+  await deleteBudget().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByLabel('Active budget').locator('option')).toHaveCount(2)
+
+  await page.getByLabel('Budget actions').click()
+  await deleteBudget().click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete budget' }).click()
+  await expect(page.getByLabel('Active budget').locator('option')).toHaveCount(1)
+})
+
 test('restores an exported budget only after confirmation', async ({ page }) => {
   await page.goto('/')
   const income = page.getByLabel('Amount for Main income')
@@ -206,23 +230,22 @@ test('restores an exported budget only after confirmation', async ({ page }) => 
   await income.press('Tab')
   await expect(page.locator('.desktop-sidebar .save-status')).toHaveClass(/save-saved/)
   await page.goto('/backup')
-  const cancelledDialog = page.waitForEvent('dialog')
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: contents,
   })
-  await (await cancelledDialog).dismiss()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click()
   await page.goto('/')
   await expect(income).toHaveValue('99.00')
 
   await page.goto('/backup')
-  page.once('dialog', (dialog) => dialog.accept())
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: contents,
   })
+  await page.getByRole('dialog').getByRole('button', { name: 'Replace data' }).click()
   await expect(page.getByRole('status')).toContainText('have been restored')
   await page.goto('/')
   await expect(income).toHaveValue('1234.56')

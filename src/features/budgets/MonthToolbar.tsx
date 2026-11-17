@@ -9,9 +9,11 @@ import {
 } from 'lucide-react'
 import { useBudget } from '../../app/budget-context'
 import { NameInput } from '../../components/forms/NameInput'
+import { useConfirm } from '../../components/ui/confirm-context'
 
 export function MonthToolbar() {
   const actionsRef = useRef<HTMLDetailsElement>(null)
+  const confirm = useConfirm()
   const {
     data,
     activeBudget,
@@ -34,19 +36,17 @@ export function MonthToolbar() {
     (budget) => budget.id === activeBudget.id,
   )
 
-  const handleDelete = () => {
-    if (data.budgetMonths.length <= 1) {
-      window.alert('The last budget cannot be deleted.')
-      return
-    }
-    if (
-      window.confirm(
-        `Delete ${activeBudget.name} and all of its planned data?`,
-      )
-    ) {
-      deleteActiveBudget()
-    }
+  const isLastBudget = data.budgetMonths.length <= 1
+
+  const handleDelete = async () => {
     if (actionsRef.current) actionsRef.current.open = false
+    const confirmed = await confirm({
+      title: `Delete ${activeBudget.name}?`,
+      message: 'This month and all of its planned data will be removed.',
+      confirmLabel: 'Delete budget',
+      tone: 'danger',
+    })
+    if (confirmed) deleteActiveBudget()
   }
 
   const createMonth = (copyCurrent: boolean) => {
@@ -124,7 +124,9 @@ export function MonthToolbar() {
             <button
               type="button"
               className="is-danger"
-              onClick={handleDelete}
+              disabled={isLastBudget}
+              title={isLastBudget ? 'The last budget cannot be deleted.' : undefined}
+              onClick={() => void handleDelete()}
             >
               <Trash2 aria-hidden="true" size={17} />
               Delete budget

@@ -83,6 +83,23 @@ describe('parseRevolutCsv', () => {
     ])
   })
 
+  it('reads amounts with more than two decimals and thousands separators', () => {
+    const amountFor = (amount: string) => {
+      const csv = [
+        'Started Date,Completed Date,Description,Amount,Fee,Type,Currency,State',
+        `2026-09-01,2026-09-01,Test,"${amount}",0,exchange,EUR,COMPLETED`,
+      ].join('\n')
+      return parseRevolutCsv(csv, { fileName: 'a.csv', idFactory: createIds() })
+        .transactions[0]?.amountCents
+    }
+
+    expect(amountFor('-0.123')).toBe(-12) // not -12,300
+    expect(amountFor('-1.2345')).toBe(-123)
+    expect(amountFor('-1,234')).toBe(-123_400) // grouped thousands
+    expect(amountFor('-1.234,56')).toBe(-123_456)
+    expect(amountFor('-12,5')).toBe(-1_250)
+  })
+
   it('rejects files without the required Revolut columns', () => {
     expect(() =>
       parseRevolutCsv('Date,Label,Value\n2026-09-01,Coffee,-3', {

@@ -58,6 +58,32 @@ npm run test:e2e
 The iPhone project emulates a mobile viewport in Chromium; it is not a native
 Safari/WebKit test.
 
+The account tests need the sign-in form, which only exists when the build has
+Supabase variables. Without them they fail on the missing "Email address" field.
+Use placeholder values for a local run (nothing is contacted, the tests mock the
+network):
+
+```powershell
+$env:VITE_SUPABASE_URL = 'https://example.supabase.co'
+$env:VITE_SUPABASE_PUBLISHABLE_KEY = 'placeholder'
+npm run build
+npm run test:e2e
+```
+
+### Layout checks
+
+`e2e/layout.spec.ts` opens every page at eight widths, with a default and a busy
+budget, and fails on horizontal overflow, overlapping cards, content leaving its
+card or overlapping Sankey labels. To look at the result, run the dev server and
+capture screenshots in light and dark:
+
+```powershell
+npm run dev
+node scripts/capture-viewports.mjs http://localhost:5173 captures
+```
+
+Styles are organised per page, see [`src/styles/README.md`](./src/styles/README.md).
+
 ## Installation and hosting
 
 Build with `npm run build` and serve `dist` over HTTPS. The current configuration

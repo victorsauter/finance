@@ -407,6 +407,63 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
     await replaceData(createInitialAppData())
   }, [replaceData])
 
+  const dismissError = useCallback(() => setError(null), [])
+
+  const activeBudget = useMemo(
+    () =>
+      data
+        ? (data.budgetMonths.find(
+            (budget) => budget.id === data.settings.activeBudgetMonthId,
+          ) ?? data.budgetMonths[0])
+        : undefined,
+    [data],
+  )
+
+  // Memoised so consumers only re-render when something they read changed.
+  const contextValue = useMemo(
+    () =>
+      data && activeBudget
+        ? {
+            data,
+            activeBudget,
+            saveStatus,
+            error,
+            setActiveBudget,
+            goToAdjacentBudget,
+            createFollowingBudget,
+            deleteActiveBudget,
+            updateActiveBudget,
+            importTransactions,
+            setTransactionCategory,
+            setTransactionKind,
+            deleteTransaction,
+            deleteTransactionBatch,
+            replaceData,
+            resetData,
+            dismissError,
+          }
+        : null,
+    [
+      data,
+      activeBudget,
+      saveStatus,
+      error,
+      setActiveBudget,
+      goToAdjacentBudget,
+      createFollowingBudget,
+      deleteActiveBudget,
+      updateActiveBudget,
+      importTransactions,
+      setTransactionCategory,
+      setTransactionKind,
+      deleteTransaction,
+      deleteTransactionBatch,
+      replaceData,
+      resetData,
+      dismissError,
+    ],
+  )
+
   if (!data) {
     return (
       <main className="loading-screen" aria-live="polite">
@@ -422,11 +479,6 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
     )
   }
 
-  const activeBudget =
-    data.budgetMonths.find(
-      (budget) => budget.id === data.settings.activeBudgetMonthId,
-    ) ?? data.budgetMonths[0]
-
   if (!activeBudget) {
     return (
       <main className="loading-screen">
@@ -439,27 +491,7 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
   }
 
   return (
-    <BudgetContext.Provider
-      value={{
-        data,
-        activeBudget,
-        saveStatus,
-        error,
-        setActiveBudget,
-        goToAdjacentBudget,
-        createFollowingBudget,
-        deleteActiveBudget,
-        updateActiveBudget,
-        importTransactions,
-        setTransactionCategory,
-        setTransactionKind,
-        deleteTransaction,
-        deleteTransactionBatch,
-        replaceData,
-        resetData,
-        dismissError: () => setError(null),
-      }}
-    >
+    <BudgetContext.Provider value={contextValue}>
       {children}
     </BudgetContext.Provider>
   )

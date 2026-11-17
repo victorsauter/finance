@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Download, Trash2 } from 'lucide-react'
 import { useBudget } from '../../app/budget-context'
+import { useConfirm } from '../../components/ui/confirm-context'
 import type {
   ImportedTransaction,
   ImportedTransactionKind,
@@ -38,6 +39,7 @@ export function TransactionsPage() {
     setTransactionKind,
     deleteTransaction,
   } = useBudget()
+  const confirm = useConfirm()
   const [selectedMonth, setSelectedMonth] = useState(() =>
     budgetMonthKey(activeBudget.year, activeBudget.month),
   )
@@ -103,14 +105,14 @@ export function TransactionsPage() {
   ).length
   const nonEuroCount = transactions.length - euroTransactions.length
 
-  const removeTransaction = (transaction: ImportedTransaction) => {
-    if (
-      window.confirm(
-        `Delete “${transaction.description}” from ${transaction.bookingDate}?`,
-      )
-    ) {
-      deleteTransaction(transaction.id)
-    }
+  const removeTransaction = async (transaction: ImportedTransaction) => {
+    const confirmed = await confirm({
+      title: 'Delete this transaction?',
+      message: `“${transaction.description}” from ${transaction.bookingDate} will be removed.`,
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    })
+    if (confirmed) deleteTransaction(transaction.id)
   }
 
   return (
@@ -341,7 +343,7 @@ export function TransactionsPage() {
                           type="button"
                           className="transaction-delete"
                           aria-label={`Delete ${transaction.description}`}
-                          onClick={() => removeTransaction(transaction)}
+                          onClick={() => void removeTransaction(transaction)}
                         >
                           <Trash2 aria-hidden="true" size={17} />
                         </button>

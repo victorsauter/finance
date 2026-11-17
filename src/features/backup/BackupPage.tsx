@@ -3,11 +3,16 @@ import { Download, FileUp, ShieldCheck, Trash2 } from 'lucide-react'
 import { useBudget } from '../../app/budget-context'
 import { CURRENT_SCHEMA_VERSION } from '../../domain/budget/models'
 import { parseAppData } from '../../domain/budget/schema'
+import { useConfirm } from '../../components/ui/confirm-context'
+import { describeBackupError } from './describe-backup-error'
 import { downloadJson } from './download'
 import { useSync } from '../../app/sync-context'
 
+const MAX_BACKUP_BYTES = 20 * 1024 * 1024
+
 export function BackupPage() {
   const { data, replaceData, resetData } = useBudget()
+  const confirm = useConfirm()
   const { state: sync } = useSync()
   const cloudEnabled = sync.status !== 'disabled'
   const inputRef = useRef<HTMLInputElement>(null)
@@ -26,17 +31,23 @@ export function BackupPage() {
     event.target.value = ''
     if (!file) return
 
+    if (file.size > MAX_BACKUP_BYTES) {
+      setIsError(true)
+      setMessage('This file is larger than the 20 MB limit for a backup.')
+      return
+    }
+
     try {
       const parsed = parseAppData(JSON.parse(await file.text()))
       const budgetCount = parsed.budgetMonths.length
       const transactionCount = parsed.importedTransactions.length
-      if (
-        !window.confirm(
-          `Replace current data with ${budgetCount} budget(s) and ${transactionCount} transaction(s) from “${file.name}”?${cloudEnabled ? ' This replacement will sync to your other devices. A backup of the current data will be downloaded first.' : ''}`,
-        )
-      ) {
-        return
-      }
+      const confirmed = await confirm({
+        title: 'Replace your current data?',
+        message: `${budgetCount} budget(s) and ${transactionCount} transaction(s) from “${file.name}” will replace what is stored now.${cloudEnabled ? ' The replacement will sync to your other devices. A backup of the current data is downloaded first.' : ''}`,
+        confirmLabel: 'Replace data',
+        tone: 'danger',
+      })
+      if (!confirmed) return
       if (cloudEnabled) downloadJson('finance-before-restore.json', data)
       await replaceData(parsed)
       setIsError(false)
@@ -45,28 +56,33 @@ export function BackupPage() {
       )
     } catch (importError) {
       setIsError(true)
-      setMessage(
-        importError instanceof Error
-          ? `Invalid backup: ${importError.message}`
-          : 'This file does not contain a valid backup.',
-      )
+      setMessage(describeBackupError(importError))
     }
   }
 
   const reset = async () => {
-    if (
-      !window.confirm(
-        cloudEnabled
-          ? 'Reset all budgets and transactions in this account to an empty month? This reset will sync to your other devices. A backup will be downloaded first.'
-          : 'Delete all local budgets and create an empty month? Export a backup before continuing.',
+    const confirmed = await confirm({
+      title: 'Reset everything?',
+      message: cloudEnabled
+        ? 'All budgets and transactions in this account will be replaced by an empty month. The reset will sync to your other devices. A backup is downloaded first.'
+        : 'All local budgets will be deleted and replaced by an empty month. Export a backup before continuing.',
+      confirmLabel: 'Reset everything',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+    try {
+      if (cloudEnabled) downloadJson('finance-before-reset.json', data)
+      await resetData()
+      setIsError(false)
+      setMessage(cloudEnabled ? 'Account data has been reset locally. Check the sync status before closing this device.' : 'Local data has been reset.')
+    } catch (resetError) {
+      setIsError(true)
+      setMessage(
+        resetError instanceof Error
+          ? `Reset failed: ${resetError.message}`
+          : 'The reset failed. Your data has been kept.',
       )
-    ) {
-      return
     }
-    if (cloudEnabled) downloadJson('finance-before-reset.json', data)
-    await resetData()
-    setIsError(false)
-    setMessage(cloudEnabled ? 'Account data has been reset locally. Check the sync status before closing this device.' : 'Local data has been reset.')
   }
 
   return (

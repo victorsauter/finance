@@ -26,6 +26,13 @@ export function formatMoneyInput(cents: number): string {
   })
 }
 
+/**
+ * Largest amount accepted in a budget field: one billion euros. Without a cap a
+ * pasted 20-digit number is no longer a safe integer, the schema rejects the
+ * whole document, and every later save fails until the page is reloaded.
+ */
+export const MAX_AMOUNT_CENTS = 100_000_000_000
+
 export function parseMoneyInput(value: string): number | null {
   const normalized = value.trim().replace(/\s/g, '').replace(',', '.')
   if (normalized === '') {
@@ -41,5 +48,6 @@ export function parseMoneyInput(value: string): number | null {
     return null
   }
 
-  return Math.round(amount * 100)
+  const cents = Math.round(amount * 100)
+  return cents > MAX_AMOUNT_CENTS ? null : cents
 }
