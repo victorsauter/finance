@@ -7,9 +7,8 @@ export const Route = createFileRoute('/account')({
 })
 
 function AccountRoute() {
-  // Wave 2: drop `as="div"` once the page no longer renders its own <main>.
   return (
-    <Page as="div">
+    <Page>
       <AccountPage />
     </Page>
   )
