@@ -22,11 +22,13 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between',
+        // Wraps instead of squeezing the title: the actions drop under it
+        // when the row is too narrow for both (e.g. a month toolbar at 481px).
+        'flex flex-wrap items-end justify-between gap-4',
         className,
       )}
     >
-      <div className="min-w-0 space-y-1">
+      <div className="min-w-0 flex-1 basis-72 space-y-1">
         {eyebrow && (
           <p className="text-xs font-semibold tracking-wider text-primary uppercase">
             {eyebrow}
@@ -42,7 +44,7 @@ export function PageHeader({
         )}
       </div>
       {actions && (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
           {actions}
         </div>
       )}
