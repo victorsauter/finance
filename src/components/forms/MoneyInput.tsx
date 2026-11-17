@@ -42,7 +42,7 @@ export function MoneyInput({
     <div className={cn('min-w-0', className)}>
       <div className="relative">
         <Input
-          className={cn(quietInputClass, 'pr-7 text-right tabular-nums')}
+          className={cn(quietInputClass, 'pr-6 text-right tabular-nums')}
           type="text"
           inputMode="decimal"
           value={editing ? draft : formatMoneyInput(valueCents)}

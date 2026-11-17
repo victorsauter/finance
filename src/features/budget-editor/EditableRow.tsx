@@ -51,7 +51,7 @@ export function EditableRow({
         autoFocus={autoFocus}
       />
       <MoneyInput
-        className="w-24 sm:w-32"
+        className="w-28 sm:w-32"
         valueCents={amountCents}
         ariaLabel={amountLabel}
         onCommit={onAmountCommit}

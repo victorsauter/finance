@@ -34,7 +34,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       to="/"
       aria-label="Finance, home"
       className={cn(
-        'flex w-fit min-w-0 items-center gap-3 rounded-xl font-bold tracking-tight text-foreground no-underline',
+        'flex w-fit max-w-full min-w-0 items-center gap-3 rounded-xl font-bold tracking-tight text-foreground no-underline',
         compact && 'gap-2.5',
       )}
     >
@@ -59,7 +59,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
       >
         Finance
         {!compact && (
-          <small className="mt-0.5 block truncate text-xs font-normal tracking-normal text-muted-foreground">
+          <small className="mt-0.5 block text-xs leading-snug font-normal tracking-normal text-muted-foreground">
             Simple. Private. Always with you.
           </small>
         )}
@@ -108,7 +108,7 @@ function MobileDock() {
     <nav
       aria-label="Mobile navigation"
       className={cn(
-        'glass-panel fixed left-1/2 z-(--z-dock) grid h-(--dock-height) w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 grid-cols-4 gap-1 rounded-[1.8rem] p-1.5 md:hidden',
+        'glass-panel fixed left-1/2 z-(--z-dock) grid h-(--dock-height) w-[min(24rem,calc(100vw-1rem))] -translate-x-1/2 grid-cols-4 gap-0.5 rounded-[1.8rem] p-1.5 md:hidden',
         'bottom-[max(var(--dock-offset),env(safe-area-inset-bottom,0px))]',
       )}
     >
@@ -117,7 +117,7 @@ function MobileDock() {
           key={to}
           to={to}
           activeOptions={{ exact: to === '/' }}
-          className="group/nav grid min-w-0 place-items-center gap-0.5 rounded-3xl border border-transparent px-0.5 py-1 text-xs font-semibold text-muted-foreground no-underline data-[status=active]:border-primary/15 data-[status=active]:bg-accent/75 data-[status=active]:text-accent-foreground"
+          className="group/nav grid min-w-0 place-items-center gap-0.5 rounded-3xl border border-transparent px-0 py-1 text-xs font-semibold text-muted-foreground no-underline data-[status=active]:border-primary/15 data-[status=active]:bg-accent/75 data-[status=active]:text-accent-foreground"
         >
           <span
             aria-hidden="true"
