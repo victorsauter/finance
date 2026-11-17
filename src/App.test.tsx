@@ -50,7 +50,7 @@ describe('budget application', () => {
     await user.tab()
 
     const summary = screen.getByRole('region', { name: 'Budget summary' })
-    const incomeCard = within(summary).getByText('Income').closest('article')
+    const incomeCard = within(summary).getByText('Income').closest('[data-slot="card"]')
     expect(incomeCard).not.toBeNull()
     expect(incomeCard).toHaveTextContent('€3,000.50')
     await waitFor(() =>
