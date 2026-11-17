@@ -40,7 +40,7 @@ export function SortableRow({
         style={{ transform: CSS.Translate.toString(transform), transition }}
         data-dragging={isDragging || undefined}
         className={cn(
-          'data-dragging:relative data-dragging:z-10 data-dragging:shadow-lg data-dragging:ring-1 data-dragging:ring-foreground/10',
+          'data-dragging:relative data-dragging:z-10 data-dragging:rounded-lg data-dragging:bg-card data-dragging:shadow-lg data-dragging:ring-1 data-dragging:ring-foreground/10',
           className,
         )}
       >
@@ -66,7 +66,6 @@ export function DragHandle({ label }: { label: string }) {
         buttonVariants({ variant: 'ghost', size: 'icon-sm' }),
         'touch-none text-muted-foreground',
         isDragging ? 'cursor-grabbing' : 'cursor-grab',
-        disabled && 'invisible',
       )}
     >
       <GripVertical aria-hidden="true" />

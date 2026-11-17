@@ -41,7 +41,7 @@ export function EditableRow({
     <SortableRow
       id={id}
       disabled={count < 2}
-      className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-1 rounded-lg bg-card"
+      className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-start gap-1 rounded-lg"
     >
       <DragHandle label={name} />
       <NameInput
@@ -51,7 +51,7 @@ export function EditableRow({
         autoFocus={autoFocus}
       />
       <MoneyInput
-        className="w-28 sm:w-32"
+        className="w-24 sm:w-32"
         valueCents={amountCents}
         ariaLabel={amountLabel}
         onCommit={onAmountCommit}

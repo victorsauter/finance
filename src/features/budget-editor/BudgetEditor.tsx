@@ -47,6 +47,7 @@ export function BudgetEditor() {
   return (
     <Section
       title="Build your month"
+      className="[--card-spacing:--spacing(3)] sm:[--card-spacing:--spacing(5)]"
       contentClassName="flex flex-col gap-6"
     >
       <EditorGroup

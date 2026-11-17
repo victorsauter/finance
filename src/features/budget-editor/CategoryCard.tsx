@@ -38,7 +38,7 @@ export function CategoryCard({
 
   return (
     <SortableRow id={category.id} disabled={count < 2} className="@container">
-      <Card size="sm" className="gap-2 bg-muted/30">
+      <Card size="sm" className="gap-2 bg-muted/30 data-[size=sm]:[--card-spacing:--spacing(2)] @md:data-[size=sm]:[--card-spacing:--spacing(3)]">
         <CardHeader className="grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-1 gap-y-2 @md:grid-cols-[auto_minmax(0,1fr)_auto_auto_auto]">
           <DragHandle label={category.name} />
           <NameInput
