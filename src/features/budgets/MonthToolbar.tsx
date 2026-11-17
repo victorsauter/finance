@@ -1,139 +1,158 @@
-import { useMemo, useRef } from 'react'
+import { useState } from 'react'
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
-  CopyPlus,
   MoreHorizontal,
-  Plus,
-  Trash2,
+  RotateCcw,
 } from 'lucide-react'
-import { useBudget } from '../../app/budget-context'
-import { NameInput } from '../../components/forms/NameInput'
-import { useConfirm } from '../../components/ui/confirm-context'
+import { useBudget } from '@/app/budget-context'
+import { Button } from '@/components/ui/button'
+import { useConfirm } from '@/components/ui/confirm-context'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  getMonthName,
+  monthKey,
+  nextMonth,
+  previousMonth,
+} from '@/domain/budget/factory'
+import { MonthCalendar } from './MonthCalendar'
 
-export function MonthToolbar() {
-  const actionsRef = useRef<HTMLDetailsElement>(null)
+interface MonthToolbarProps {
+  /** Called when the user picks a month; the route writes it to `?m=`. */
+  onSelectMonth: (year: number, month: number) => void
+}
+
+/**
+ * Month controls: calendar-month chevrons, a popover with the year calendar
+ * and the month actions menu. It only reads the active month; changing it is
+ * the route's job (the month lives in the URL).
+ */
+export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
   const confirm = useConfirm()
   const {
-    data,
     activeBudget,
-    setActiveBudget,
-    goToAdjacentBudget,
-    createFollowingBudget,
-    deleteActiveBudget,
-    updateActiveBudget,
+    activeBudgetIsVirtual,
+    savedMonthKeys,
+    resetActiveBudget,
   } = useBudget()
+  const [open, setOpen] = useState(false)
+  const [viewYear, setViewYear] = useState(activeBudget.year)
+  const [currentKey] = useState(() => {
+    const today = new Date()
+    return monthKey(today.getFullYear(), today.getMonth() + 1)
+  })
 
-  const sortedBudgets = useMemo(
-    () =>
-      [...data.budgetMonths].sort(
-        (left, right) =>
-          left.year * 12 + left.month - (right.year * 12 + right.month),
-      ),
-    [data.budgetMonths],
-  )
-  const activeIndex = sortedBudgets.findIndex(
-    (budget) => budget.id === activeBudget.id,
-  )
+  const { year, month } = activeBudget
+  const selectedKey = monthKey(year, month)
 
-  const isLastBudget = data.budgetMonths.length <= 1
+  const step = (target: { year: number; month: number }) =>
+    onSelectMonth(target.year, target.month)
 
-  const handleDelete = async () => {
-    if (actionsRef.current) actionsRef.current.open = false
-    const confirmed = await confirm({
-      title: `Delete ${activeBudget.name}?`,
-      message: 'This month and all of its planned data will be removed.',
-      confirmLabel: 'Delete budget',
-      tone: 'danger',
-    })
-    if (confirmed) deleteActiveBudget()
+  const handleOpenChange = (next: boolean) => {
+    // Always start on the year of the month being viewed.
+    if (next) setViewYear(year)
+    setOpen(next)
   }
 
-  const createMonth = (copyCurrent: boolean) => {
-    createFollowingBudget(copyCurrent)
-    if (actionsRef.current) actionsRef.current.open = false
+  const handleReset = async () => {
+    const confirmed = await confirm({
+      title: `Reset ${activeBudget.name}?`,
+      message:
+        'This month goes back to the plan of the nearest earlier month, or to an empty plan. Imported transactions keep their place but lose categories that no longer exist.',
+      confirmLabel: 'Reset month',
+      tone: 'danger',
+    })
+    if (confirmed) resetActiveBudget()
   }
 
   return (
-    <section className="month-toolbar" aria-label="Month navigation">
-      <div className="month-heading">
-        <p className="eyebrow">Monthly budget</p>
-        <NameInput
-          value={activeBudget.name}
-          ariaLabel="Budget name"
-          className="month-name-input"
-          onCommit={(name) =>
-            updateActiveBudget((budget) => {
-              budget.name = name
-            })
-          }
-        />
-      </div>
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <Button
+        type="button"
+        variant="outline"
+        className="size-11"
+        aria-label="Previous month"
+        onClick={() => step(previousMonth(year, month))}
+      >
+        <ChevronLeft aria-hidden="true" />
+      </Button>
 
-      <div className="month-navigation">
-        <button
-          type="button"
-          className="icon-button"
-          disabled={activeIndex <= 0}
-          aria-label="Previous budget"
-          onClick={() => goToAdjacentBudget(-1)}
-        >
-          <ChevronLeft aria-hidden="true" size={20} />
-        </button>
-        <select
-          aria-label="Active budget"
-          value={activeBudget.id}
-          onChange={(event) => setActiveBudget(event.target.value)}
-        >
-          {sortedBudgets.map((budget) => (
-            <option key={budget.id} value={budget.id}>
-              {budget.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="icon-button"
-          disabled={activeIndex >= sortedBudgets.length - 1}
-          aria-label="Next budget"
-          onClick={() => goToAdjacentBudget(1)}
-        >
-          <ChevronRight aria-hidden="true" size={20} />
-        </button>
-      </div>
-
-      <div className="month-actions">
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() => createMonth(false)}
-        >
-          <Plus aria-hidden="true" size={17} />
-          <span className="button-label">New month</span>
-        </button>
-        <details ref={actionsRef} className="month-more">
-          <summary className="icon-button" aria-label="Budget actions">
-            <MoreHorizontal aria-hidden="true" size={21} />
-            <span className="visually-hidden">Budget actions</span>
-          </summary>
-          <div className="month-actions-menu glass-panel">
-            <button type="button" onClick={() => createMonth(true)}>
-              <CopyPlus aria-hidden="true" size={17} />
-              Copy this month
-            </button>
-            <button
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger
+          render={
+            <Button
               type="button"
-              className="is-danger"
-              disabled={isLastBudget}
-              title={isLastBudget ? 'The last budget cannot be deleted.' : undefined}
-              onClick={() => void handleDelete()}
-            >
-              <Trash2 aria-hidden="true" size={17} />
-              Delete budget
-            </button>
-          </div>
-        </details>
-      </div>
-    </section>
+              variant="outline"
+              className="h-11 min-w-0 flex-1 gap-2 px-3 sm:w-48 sm:flex-none"
+            />
+          }
+        >
+          <CalendarDays aria-hidden="true" className="text-muted-foreground" />
+          <span className="flex-1 truncate text-left">
+            {getMonthName(year, month)}
+          </span>
+        </PopoverTrigger>
+        <PopoverContent align="center" className="w-72">
+          <MonthCalendar
+            year={viewYear}
+            onYearChange={setViewYear}
+            selectedKey={selectedKey}
+            currentKey={currentKey}
+            savedKeys={savedMonthKeys}
+            onSelect={(nextYear, nextMonthNumber) => {
+              setOpen(false)
+              onSelectMonth(nextYear, nextMonthNumber)
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="size-11"
+        aria-label="Next month"
+        onClick={() => step(nextMonth(year, month))}
+      >
+        <ChevronRight aria-hidden="true" />
+      </Button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              className="size-11"
+              aria-label="Budget actions"
+            />
+          }
+        >
+          <MoreHorizontal aria-hidden="true" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-44">
+          <DropdownMenuItem
+            variant="destructive"
+            className="min-h-11"
+            disabled={activeBudgetIsVirtual}
+            onClick={() => void handleReset()}
+          >
+            <RotateCcw aria-hidden="true" />
+            Reset month
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }

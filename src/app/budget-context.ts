@@ -28,12 +28,6 @@ export interface BudgetContextValue {
   /** Re-seeds the active month from the nearest earlier month (or empty). */
   resetActiveBudget: () => void
   setActiveBudget: (id: string) => void
-  /** @deprecated Use `openMonth`. */
-  goToAdjacentBudget: (direction: -1 | 1) => void
-  /** @deprecated Use `openMonth`. */
-  createFollowingBudget: (copyCurrent: boolean) => void
-  /** @deprecated Use `resetActiveBudget`. */
-  deleteActiveBudget: () => boolean
   updateActiveBudget: (update: (budget: BudgetMonth) => void) => void
   importTransactions: (transactions: ImportedTransaction[]) => number
   setTransactionCategory: (
