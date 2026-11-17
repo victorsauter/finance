@@ -39,3 +39,6 @@ kubeconfig
 captures
 captures-before
 captures-after
+
+# Claude Code agent worktrees
+.claude/worktrees/
