@@ -137,29 +137,26 @@ export function RevolutCsvImporter({
     <Section
       title="Add a Revolut statement"
       description="The file is analysed only in this browser. Only completed transactions are offered, and duplicates are ignored."
-      actions={
-        <>
-          <input
-            ref={inputRef}
-            className="sr-only"
-            type="file"
-            accept=".csv,text/csv,text/plain"
-            aria-label="Revolut CSV file"
-            tabIndex={-1}
-            onChange={(event) => void selectFile(event)}
-          />
-          <Button
-            type="button"
-            className="h-11 md:h-9"
-            onClick={() => inputRef.current?.click()}
-          >
-            <FileUp aria-hidden="true" />
-            Choose a CSV
-          </Button>
-        </>
-      }
-      contentClassName="space-y-4 empty:hidden"
+      contentClassName="space-y-4"
     >
+      <input
+        ref={inputRef}
+        className="sr-only"
+        type="file"
+        accept=".csv,text/csv,text/plain"
+        aria-label="Revolut CSV file"
+        tabIndex={-1}
+        onChange={(event) => void selectFile(event)}
+      />
+      <Button
+        type="button"
+        className="h-11 w-full sm:w-auto md:h-9"
+        onClick={() => inputRef.current?.click()}
+      >
+        <FileUp aria-hidden="true" />
+        Choose a CSV
+      </Button>
+
       {message && (
         <Notice
           tone={isError ? 'danger' : 'success'}

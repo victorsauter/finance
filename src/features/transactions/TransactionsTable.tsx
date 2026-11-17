@@ -51,11 +51,11 @@ const cellClass = {
   date: 'col-start-1 row-start-1 text-xs text-muted-foreground @3xl:w-24 @3xl:text-sm',
   amount:
     'col-span-2 col-start-2 row-start-1 text-right text-sm font-medium tabular-nums @3xl:w-32',
-  description: 'col-span-3 col-start-1 row-start-2 min-w-0 @3xl:min-w-48',
+  description: 'col-span-2 col-start-1 row-start-2 min-w-0 @3xl:min-w-48',
   kind: 'col-start-1 row-start-3 @3xl:w-36',
-  category: 'col-start-2 row-start-3 @3xl:w-56',
+  category: 'col-span-2 col-start-2 row-start-3 @3xl:w-56',
   actions:
-    'col-start-3 row-start-3 flex justify-end @3xl:w-14 @3xl:text-right',
+    'col-start-3 row-start-2 flex justify-end @3xl:w-14 @3xl:text-right',
 } as const
 type ColumnId = keyof typeof cellClass
 
