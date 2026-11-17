@@ -1,10 +1,19 @@
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type ReactNode,
 } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   ConfirmContext,
   type ConfirmFn,
@@ -17,13 +26,18 @@ interface PendingConfirm {
 }
 
 /**
- * In-app replacement for window.confirm: a native modal <dialog>, so focus is
- * trapped, Escape cancels, and screen readers announce it as a dialog.
+ * In-app replacement for window.confirm, built on the shadcn alert dialog:
+ * focus is trapped, Escape cancels, and screen readers announce an alert
+ * dialog. Same `useConfirm` API as before (see confirm-context.ts).
  */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  // `pending` keeps the last request mounted while the close animation runs;
+  // `open` is what the dialog actually shows.
   const [pending, setPending] = useState<PendingConfirm | null>(null)
+  const [open, setOpen] = useState(false)
   const pendingRef = useRef<PendingConfirm | null>(null)
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  const confirmRef = useRef<HTMLButtonElement>(null)
 
   const confirm = useCallback<ConfirmFn>(
     (options) =>
@@ -33,23 +47,16 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         const next = { options, resolve }
         pendingRef.current = next
         setPending(next)
+        setOpen(true)
       }),
     [],
   )
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!pending || !dialog || dialog.open) return
-    if (typeof dialog.showModal === 'function') dialog.showModal()
-    else dialog.setAttribute('open', '')
-  }, [pending])
 
   const settle = (confirmed: boolean) => {
     const current = pendingRef.current
     if (!current) return
     pendingRef.current = null
-    dialogRef.current?.close()
-    setPending(null)
+    setOpen(false)
     current.resolve(confirmed)
   }
 
@@ -59,45 +66,39 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      {pending && options && (
-        <dialog
-          ref={dialogRef}
-          className="confirm-dialog glass-panel"
-          aria-labelledby="confirm-title"
-          aria-describedby="confirm-message"
-          onCancel={(event) => {
-            event.preventDefault()
-            settle(false)
-          }}
-          onClick={(event) => {
-            // A click on the backdrop lands on the dialog element itself.
-            if (event.target === event.currentTarget) settle(false)
-          }}
-        >
-          <div className="confirm-body">
-          <h2 id="confirm-title">{options.title}</h2>
-          <p id="confirm-message">{options.message}</p>
-          <div className="confirm-actions">
-            <button
-              type="button"
-              className="secondary-button"
-              autoFocus={danger}
-              onClick={() => settle(false)}
-            >
-              {options.cancelLabel ?? 'Cancel'}
-            </button>
-            <button
-              type="button"
-              className={danger ? 'danger-button' : 'primary-button'}
-              autoFocus={!danger}
-              onClick={() => settle(true)}
-            >
-              {options.confirmLabel ?? 'Confirm'}
-            </button>
-          </div>
-          </div>
-        </dialog>
-      )}
+      <AlertDialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) settle(false)
+        }}
+        onOpenChangeComplete={(isOpen) => {
+          if (!isOpen && !pendingRef.current) setPending(null)
+        }}
+      >
+        {options && (
+          <AlertDialogContent
+            // Danger confirmations focus Cancel so Enter never destroys data.
+            initialFocus={danger ? cancelRef : confirmRef}
+          >
+            <AlertDialogHeader>
+              <AlertDialogTitle>{options.title}</AlertDialogTitle>
+              <AlertDialogDescription>{options.message}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel ref={cancelRef}>
+                {options.cancelLabel ?? 'Cancel'}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                ref={confirmRef}
+                variant={danger ? 'destructive' : 'default'}
+                onClick={() => settle(true)}
+              >
+                {options.confirmLabel ?? 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
     </ConfirmContext.Provider>
   )
 }
