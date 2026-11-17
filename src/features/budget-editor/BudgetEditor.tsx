@@ -7,6 +7,7 @@ import {
 import { useBudget } from '../../app/budget-context'
 import { MoneyInput } from '../../components/forms/MoneyInput'
 import { NameInput } from '../../components/forms/NameInput'
+import { useConfirm } from '../../components/ui/confirm-context'
 import {
   createAccount,
   createExpenseCategory,
@@ -88,15 +89,22 @@ function RowActions({
 export function BudgetEditor() {
   const { activeBudget, updateActiveBudget } = useBudget()
 
-  const deleteAccount = (accountId: string, name: string) => {
+  const confirm = useConfirm()
+
+  const deleteAccount = async (accountId: string, name: string) => {
     const categoryCount = activeBudget.expenseCategories.filter(
       (category) => category.accountId === accountId,
     ).length
-    const message =
-      categoryCount > 0
-        ? `${categoryCount} category or categories use ${name}. They will become unassigned. Continue?`
-        : `Delete the ${name} account?`
-    if (!window.confirm(message)) return
+    const confirmed = await confirm({
+      title: `Delete ${name}?`,
+      message:
+        categoryCount > 0
+          ? `${categoryCount} category or categories use this account. They will become unassigned.`
+          : 'This account will be removed from the budget.',
+      confirmLabel: 'Delete account',
+      tone: 'danger',
+    })
+    if (!confirmed) return
 
     updateActiveBudget((budget) => {
       budget.accounts = budget.accounts.filter(
@@ -254,7 +262,7 @@ export function BudgetEditor() {
                     moveItem(budget.accounts, index, direction),
                   )
                 }
-                onDelete={() => deleteAccount(account.id, account.name)}
+                onDelete={() => void deleteAccount(account.id, account.name)}
               />
             </div>
           ))}
@@ -351,12 +359,15 @@ export function BudgetEditor() {
                       ),
                     )
                   }
-                  onDelete={() => {
-                    if (
-                      window.confirm(
-                        `Delete ${category.name} and all its expenses?`,
-                      )
-                    ) {
+                  onDelete={() =>
+                    void (async () => {
+                      const confirmed = await confirm({
+                        title: `Delete ${category.name}?`,
+                        message: 'The category and all its expenses will be removed.',
+                        confirmLabel: 'Delete category',
+                        tone: 'danger',
+                      })
+                      if (!confirmed) return
                       updateActiveBudget((budget) => {
                         budget.expenseCategories =
                           budget.expenseCategories.filter(
@@ -364,8 +375,8 @@ export function BudgetEditor() {
                           )
                         resequence(budget.expenseCategories)
                       })
-                    }
-                  }}
+                    })()
+                  }
                 />
               </div>
 

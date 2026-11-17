@@ -19,6 +19,18 @@ export interface BudgetSummary {
   unassignedExpenseCents: number
 }
 
+/**
+ * Share of an account's planned transfer that its expenses use, in percent.
+ * Null when nothing is planned: dividing by a zero (or clamped) transfer used
+ * to show absurd values such as "500000% used".
+ */
+export function allocationUsagePercent(
+  allocation: Pick<AccountAllocation, 'transferCents' | 'usageCents'>,
+): number | null {
+  if (allocation.transferCents <= 0) return null
+  return Math.round((allocation.usageCents / allocation.transferCents) * 100)
+}
+
 export function calculateBudgetSummary(budget: BudgetMonth): BudgetSummary {
   const incomeCents = budget.incomes.reduce(
     (total, income) => total + income.amountCents,

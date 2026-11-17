@@ -55,8 +55,16 @@ export class CloudBudgetRepository implements BudgetRepository {
             && record.writer !== `${remoteWriter}${this.localGeneration}`) return
           const json = JSON.stringify(record.data)
           if (json !== this.lastData && record.writer !== this.writer) {
+            // A cache the schema rejects must not throw inside the subscription.
+            let parsed: AppData
+            try {
+              parsed = parseAppData(record.data)
+            } catch {
+              this.notify({ status: 'error', error: 'The synced data on this device is invalid. Export a backup before editing.' })
+              return
+            }
             this.lastData = json
-            this.dataListeners.forEach((listener) => listener(parseAppData(record.data)))
+            this.dataListeners.forEach((listener) => listener(parsed))
           }
           if (record.sync?.conflict) this.notify({ status: 'conflict' })
         },

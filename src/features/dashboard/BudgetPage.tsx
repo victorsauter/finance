@@ -1,7 +1,11 @@
 import { useMemo } from 'react'
 import { useBudget } from '../../app/budget-context'
-import { calculateBudgetSummary } from '../../domain/budget/calculations'
+import {
+  allocationUsagePercent,
+  calculateBudgetSummary,
+} from '../../domain/budget/calculations'
 import { buildCashFlowModel } from '../../domain/budget/chart-model'
+import { formatMoney } from '../../domain/budget/money'
 import { BudgetEditor } from '../budget-editor/BudgetEditor'
 import { MonthToolbar } from '../budgets/MonthToolbar'
 import { CashFlowChart } from '../cash-flow/CashFlowChart'
@@ -58,32 +62,30 @@ export function BudgetPage() {
                 <p className="empty-state">No accounts to review.</p>
               ) : (
                 <div className="allocation-list">
-                  {summary.accountAllocations.map((allocation) => (
-                    <div className="allocation-row" key={allocation.accountId}>
-                      <div>
-                        <strong>{allocation.accountName}</strong>
-                        <span>
-                          {allocation.usageCents === 0
-                            ? 'No assigned expenses'
-                            : `${Math.round(
-                                (allocation.usageCents /
-                                  Math.max(allocation.transferCents, 1)) *
-                                  100,
-                              )}% used`}
-                        </span>
+                  {summary.accountAllocations.map((allocation) => {
+                    const usage = allocationUsagePercent(allocation)
+                    return (
+                      <div className="allocation-row" key={allocation.accountId}>
+                        <div>
+                          <strong>{allocation.accountName}</strong>
+                          <span>
+                            {allocation.usageCents === 0
+                              ? 'No assigned expenses'
+                              : usage === null
+                                ? 'Expenses without a planned transfer'
+                                : `${usage}% used`}
+                          </span>
+                        </div>
+                        <strong
+                          className={
+                            allocation.balanceCents < 0 ? 'negative-text' : ''
+                          }
+                        >
+                          {formatMoney(allocation.balanceCents)}
+                        </strong>
                       </div>
-                      <strong
-                        className={
-                          allocation.balanceCents < 0 ? 'negative-text' : ''
-                        }
-                      >
-                        {new Intl.NumberFormat('en-GB', {
-                          style: 'currency',
-                          currency: 'EUR',
-                        }).format(allocation.balanceCents / 100)}
-                      </strong>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </section>

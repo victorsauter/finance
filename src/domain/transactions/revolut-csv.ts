@@ -240,11 +240,16 @@ function normalizeDecimal(value: string): string | null {
   const separatorIndex = Math.max(lastComma, lastDot)
 
   if (separatorIndex >= 0) {
-    const fractionLength = normalized.length - separatorIndex - 1
     const hasBothSeparators = lastComma >= 0 && lastDot >= 0
-    const hasDecimal =
-      fractionLength > 0 &&
-      (fractionLength <= 2 || hasBothSeparators)
+    // Thousands grouping is only assumed when the digits really look grouped:
+    // a first group of 1-3 digits without a leading zero, then groups of
+    // exactly three. "0.123" or "1.2345" are decimals, not 123 or 12345.
+    const groups = normalized.split(/[.,]/)
+    const looksGrouped =
+      !hasBothSeparators &&
+      /^[1-9]\d{0,2}$/.test(groups[0] ?? '') &&
+      groups.slice(1).every((group) => group.length === 3)
+    const hasDecimal = !looksGrouped
 
     if (hasDecimal) {
       const integerPart = normalized

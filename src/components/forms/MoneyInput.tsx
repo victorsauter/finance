@@ -54,7 +54,7 @@ export function MoneyInput({
       />
       <span aria-hidden="true">€</span>
       {invalid && (
-        <span className="field-error">Saisissez un montant positif.</span>
+        <span className="field-error">Enter an amount up to 1,000,000,000.</span>
       )}
     </span>
   )

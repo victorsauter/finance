@@ -311,3 +311,50 @@ th:last-child {
   background: var(--accent-soft);
   border: 1px solid var(--line);
 }
+/* In-app confirmation (see ConfirmProvider). A native modal <dialog>. */
+.confirm-dialog {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: 0;
+  color: var(--ink);
+  background: var(--surface-strong);
+  border-radius: var(--radius-lg);
+}
+
+.confirm-dialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 38%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.confirm-body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.35rem;
+}
+
+.confirm-body h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+
+.confirm-body p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+@media (max-width: 480px) {
+  .confirm-actions > button {
+    flex: 1 1 100%;
+  }
+}

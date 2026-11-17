@@ -1,8 +1,9 @@
 import { z } from 'zod'
+import { MAX_AMOUNT_CENTS } from './money'
 import { CURRENT_SCHEMA_VERSION } from './models'
 
 const idSchema = z.uuid()
-const centsSchema = z.number().int().nonnegative()
+const centsSchema = z.number().int().nonnegative().max(MAX_AMOUNT_CENTS)
 const signedCentsSchema = z.number().int().refine((value) => value !== 0, {
   message: 'The transaction amount cannot be zero.',
 })

@@ -33,6 +33,7 @@ export function NameInput({
       <input
         className={className}
         type="text"
+        maxLength={100}
         value={editing ? draft : value}
         aria-label={ariaLabel}
         aria-invalid={invalid}
@@ -52,7 +53,7 @@ export function NameInput({
           if (event.key === 'Enter') event.currentTarget.blur()
         }}
       />
-      {invalid && <span className="field-error">Le nom est obligatoire.</span>}
+      {invalid && <span className="field-error">A name is required.</span>}
     </span>
   )
 }

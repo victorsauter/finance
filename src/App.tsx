@@ -23,6 +23,7 @@ import { useAuth } from './app/auth-context'
 import { useSync } from './app/sync-context'
 import { useBudget, type SaveStatus } from './app/budget-context'
 import { ThemeProvider } from './app/ThemeProvider'
+import { ConfirmProvider } from './components/ui/ConfirmProvider'
 import { ThemeSwitcher } from './components/ui/ThemeSwitcher'
 import { BackupPage } from './features/backup/BackupPage'
 import { BudgetPage } from './features/dashboard/BudgetPage'
@@ -231,13 +232,15 @@ function AppShell() {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <BudgetScope>
-            <AppShell />
-          </BudgetScope>
-        </BrowserRouter>
-      </AuthProvider>
+      <ConfirmProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <BudgetScope>
+              <AppShell />
+            </BudgetScope>
+          </BrowserRouter>
+        </AuthProvider>
+      </ConfirmProvider>
     </ThemeProvider>
   )
 }
