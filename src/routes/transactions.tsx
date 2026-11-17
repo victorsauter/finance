@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Page } from '@/components/layout/Page'
 import { TransactionsPage } from '@/features/transactions/TransactionsPage'
 import { validateMonthSearch } from '@/lib/month-search'
 
@@ -9,11 +8,12 @@ export const Route = createFileRoute('/transactions')({
 })
 
 function TransactionsRoute() {
-  // Wave 2: read the month with Route.useSearch(), drop `as="div"` once the
-  // page no longer renders its own <main>.
+  const { m } = Route.useSearch()
+  const navigate = Route.useNavigate()
   return (
-    <Page as="div">
-      <TransactionsPage />
-    </Page>
+    <TransactionsPage
+      month={m}
+      onMonthChange={(month) => void navigate({ search: { m: month } })}
+    />
   )
 }
