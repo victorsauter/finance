@@ -124,13 +124,16 @@ describe('budget application', () => {
     const importButton = await screen.findByRole('button', {
       name: 'Import 2 transactions',
     })
-    expect(screen.getByText('1', { selector: '.import-stats strong' })).toBeInTheDocument()
+    const importSummary = screen.getByRole('group', { name: 'Import summary' })
+    expect(within(importSummary).getByText('Pending').previousSibling).toHaveTextContent('1')
     await user.click(importButton)
 
-    expect(await screen.findByText('Supermarché')).toBeInTheDocument()
-    const expenseSummary = screen
-      .getByText('Actual expenses', { selector: 'span' })
-      .closest('article')
+    expect(
+      await screen.findByLabelText('Category for Supermarché'),
+    ).toBeInTheDocument()
+    const expenseSummary = screen.getByRole('article', {
+      name: 'Actual expenses',
+    })
     expect(expenseSummary).toHaveTextContent('€42.50')
 
     const categorySelect = screen.getByLabelText('Category for Supermarché')
