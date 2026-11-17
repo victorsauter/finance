@@ -89,17 +89,21 @@ npm run test:e2e
 
 ### Layout checks
 
-`e2e/layout.spec.ts` opens every page at eight widths, with a default and a busy
-budget, and fails on horizontal overflow, overlapping cards, content leaving its
-card or overlapping Sankey labels. To look at the result, run the dev server and
-capture screenshots in light and dark:
+`e2e/layout.spec.ts` opens the four pages at fifteen widths (both sides of every
+breakpoint, 360 to 1920 px), in light and dark, with a default and a busy
+budget, plus the signed-in account. It fails on horizontal overflow, elements
+past the right edge, overlapping siblings, content leaving its card, clipped
+text, the mobile header, dock or sidebar covering controls, overlapping Sankey
+labels, and on a title or container whose left edge differs between pages. To
+look at the result, run the preview or dev server and capture screenshots (an
+optional third argument narrows the widths, e.g. `360,768,1440`):
 
 ```powershell
 npm run dev
 node scripts/capture-viewports.mjs http://localhost:5173 captures
 ```
 
-Styles are organised per page, see [`src/styles/README.md`](./src/styles/README.md).
+Styles are Tailwind utilities plus the design tokens in `src/index.css`; see [`src/components/README.md`](./src/components/README.md) for the page anatomy.
 
 ## Installation and hosting
 

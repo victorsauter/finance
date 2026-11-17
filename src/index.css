@@ -160,7 +160,7 @@
 }
 
 /* ---------------------------------------------------------------- Palette
-   Ported from the previous src/styles/tokens.css: same colors, same identity.
+   Same colors and identity as the previous hand-written stylesheets.
    `primary` is the former `--accent` blue; `accent` is now the soft tint used
    for hover and selected states (shadcn convention). */
 
@@ -361,19 +361,6 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-}
-
-/* Kept for the legacy pages until wave 2 migrates them to `sr-only`. */
-@utility visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
