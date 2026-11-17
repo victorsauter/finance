@@ -1,9 +1,388 @@
-@import './styles/tokens.css';
-@import './styles/base.css';
-@import './styles/shell.css';
-@import './styles/components.css';
-@import './styles/pages.css';
-@import './styles/budget.css';
-@import './styles/transactions.css';
-@import './styles/settings.css';
-@import './styles/responsive.css';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/*
+ * Design system entry point.
+ *
+ * - One spacing scale: Tailwind's 0.25rem step (p-4 = 1rem). No arbitrary rem.
+ * - One type scale: text-xs … text-3xl (defined below, nothing else).
+ * - One radius scale: rounded-sm … rounded-4xl, all derived from --radius.
+ * - Colors are semantic tokens (bg-card, text-muted-foreground, …). Light and
+ *   dark palettes live in the two blocks under "Palette". The theme is chosen
+ *   by <html data-theme="light|dark"> (see src/app/ThemeProvider.tsx).
+ */
+
+/* Dark mode follows the data-theme attribute set by ThemeProvider, not the
+   `.dark` class that shadcn assumes. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ---------------------------------------------------------------- Scales */
+
+@theme {
+  /* Breakpoints match the previous shell: the sidebar collapses to icons at
+     1180px and is replaced by the mobile header and dock at 760px. */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 30.0625rem; /* 481px  small phones and up */
+  --breakpoint-md: 47.5625rem; /* 761px  desktop shell (sidebar) */
+  --breakpoint-lg: 61.3125rem; /* 981px  two-column page layouts */
+  --breakpoint-xl: 73.8125rem; /* 1181px expanded sidebar */
+
+  /* Type scale. */
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.625rem;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
+    sans-serif;
+  --font-heading: var(--font-sans);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Layout tokens: every shell dimension lives here so pages never guess. */
+:root {
+  --radius: 0.875rem;
+
+  /* Desktop sidebar. */
+  --shell-inset: 1.25rem;
+  --sidebar-width: 13.75rem;
+  --sidebar-width-collapsed: 5.25rem;
+
+  /* Mobile header (fixed, floating) and dock (fixed, floating). */
+  --mobile-header-offset: 0.55rem;
+  --mobile-header-height: 3.75rem;
+  --dock-offset: 0.75rem;
+  --dock-height: 4.55rem;
+
+  /* Space the page must keep free on mobile for the fixed header and dock. */
+  --mobile-top-clearance: calc(
+    var(--mobile-header-offset) + var(--mobile-header-height) + 0.5rem +
+      env(safe-area-inset-top, 0px)
+  );
+  --mobile-bottom-clearance: calc(
+    var(--dock-offset) + var(--dock-height) + 1rem +
+      env(safe-area-inset-bottom, 0px)
+  );
+
+  /* The single page container: every route shares it. */
+  --page-max-width: 76rem;
+  --page-gutter: 1rem;
+
+  /* Stacking order for anything that overlays the page. */
+  --z-banner: 35;
+  --z-sidebar: 40;
+  --z-header: 45;
+  --z-dock: 50;
+}
+
+@media (min-width: 30.0625rem) {
+  :root {
+    --page-gutter: 1.5rem;
+  }
+}
+
+@media (min-width: 47.5625rem) {
+  :root {
+    --page-gutter: 2rem;
+  }
+}
+
+/* ----------------------------------------------------- Color token wiring */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-violet: var(--violet);
+  --color-cyan: var(--cyan);
+
+  /* Cash-flow (Sankey) palette. */
+  --color-flow-income: var(--flow-income);
+  --color-flow-budget: var(--flow-budget);
+  --color-flow-account: var(--flow-account);
+  --color-flow-expense: var(--flow-expense);
+  --color-flow-saving: var(--flow-saving);
+  --color-flow-warning: var(--flow-warning);
+
+  --color-chart-1: var(--flow-income);
+  --color-chart-2: var(--flow-budget);
+  --color-chart-3: var(--flow-account);
+  --color-chart-4: var(--flow-expense);
+  --color-chart-5: var(--flow-saving);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --shadow-card: var(--card-shadow);
+  --shadow-glass: var(--glass-shadow);
+  --background-image-brand: var(--brand-gradient);
+  --background-image-brand-soft: var(--brand-gradient-soft);
+}
+
+/* ---------------------------------------------------------------- Palette
+   Ported from the previous src/styles/tokens.css: same colors, same identity.
+   `primary` is the former `--accent` blue; `accent` is now the soft tint used
+   for hover and selected states (shadcn convention). */
+
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --background: #f3f5fb;
+  --foreground: #121526;
+  --card: #ffffff;
+  --card-foreground: #121526;
+  --popover: #ffffff;
+  --popover-foreground: #121526;
+  --primary: #526fff;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f2f8;
+  --secondary-foreground: #34394e;
+  --muted: #f0f2f8;
+  --muted-foreground: #697087;
+  --accent: #e9edff;
+  --accent-foreground: #455ce6;
+  --destructive: #c33d53;
+  --destructive-soft: #ffeaee;
+  --border: rgba(49, 57, 91, 0.12);
+  --border-strong: rgba(49, 57, 91, 0.19);
+  --input: rgba(49, 57, 91, 0.19);
+  --ring: #526fff;
+
+  --success: #16805d;
+  --success-soft: #e2f5ed;
+  --warning: #9b6500;
+  --warning-soft: #fff4d6;
+  --violet: #8a5cff;
+  --cyan: #4fc6ff;
+
+  --flow-income: #ffb84f;
+  --flow-budget: #5c72f2;
+  --flow-account: #8a5cff;
+  --flow-expense: #f16c88;
+  --flow-saving: #35b995;
+  --flow-warning: #d7495e;
+
+  --brand-gradient: linear-gradient(
+    135deg,
+    #4f7cff 0%,
+    #765eff 55%,
+    #9558f6 100%
+  );
+  --brand-gradient-soft: linear-gradient(
+    135deg,
+    rgba(79, 124, 255, 0.14),
+    rgba(138, 92, 255, 0.1)
+  );
+
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.86);
+  --glass-highlight: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 22px 55px rgba(45, 54, 96, 0.14);
+  --card-shadow: 0 12px 36px rgba(42, 50, 88, 0.07);
+  --page-glow-1: rgba(79, 124, 255, 0.13);
+  --page-glow-2: rgba(138, 92, 255, 0.1);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --background: #0c0f19;
+  --foreground: #f4f5fb;
+  --card: #171b29;
+  --card-foreground: #f4f5fb;
+  --popover: #1c2131;
+  --popover-foreground: #f4f5fb;
+  --primary: #7890ff;
+  --primary-foreground: #0c0f19;
+  --secondary: #202535;
+  --secondary-foreground: #d8dbea;
+  --muted: #202535;
+  --muted-foreground: #9ba2b8;
+  --accent: #282f56;
+  --accent-foreground: #91a2ff;
+  --destructive: #ff8093;
+  --destructive-soft: #43232c;
+  --border: rgba(220, 225, 255, 0.11);
+  --border-strong: rgba(220, 225, 255, 0.19);
+  --input: rgba(220, 225, 255, 0.19);
+  --ring: #7890ff;
+
+  --success: #58d2a5;
+  --success-soft: #16382f;
+  --warning: #ffd06e;
+  --warning-soft: #3a301c;
+  --violet: #a984ff;
+  --cyan: #66d2ff;
+
+  --flow-income: #ffc15c;
+  --flow-budget: #7890ff;
+  --flow-account: #a984ff;
+  --flow-expense: #ff8093;
+  --flow-saving: #58d2a5;
+  --flow-warning: #ff7186;
+
+  --brand-gradient: linear-gradient(
+    135deg,
+    #6389ff 0%,
+    #846eff 55%,
+    #aa68ff 100%
+  );
+  --brand-gradient-soft: linear-gradient(
+    135deg,
+    rgba(99, 137, 255, 0.2),
+    rgba(169, 104, 255, 0.14)
+  );
+
+  --glass: rgba(23, 27, 42, 0.68);
+  --glass-border: rgba(224, 228, 255, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 24px 64px rgba(0, 0, 0, 0.38);
+  --card-shadow: 0 15px 42px rgba(0, 0, 0, 0.18);
+}
+
+/* ------------------------------------------------------------------ Base */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    min-width: 320px;
+    min-height: 100%;
+    background: var(--background);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply text-foreground;
+    min-width: 320px;
+    min-height: 100dvh;
+    background:
+      radial-gradient(
+        circle at 12% 6%,
+        var(--page-glow-1),
+        transparent 30rem
+      ),
+      radial-gradient(
+        circle at 92% 88%,
+        var(--page-glow-2),
+        transparent 28rem
+      ),
+      var(--background);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  select,
+  summary,
+  [role='button'] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--ring) 58%, transparent);
+    outline-offset: 3px;
+  }
+}
+
+/* ------------------------------------------------------------- Utilities */
+
+/* Frosted surface used by the shell (sidebar, mobile header, dock). */
+@utility glass-panel {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    var(--glass-shadow);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  @media (prefers-contrast: more) {
+    background: var(--card);
+    border-color: var(--border-strong);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Kept for the legacy pages until wave 2 migrates them to `sr-only`. */
+@utility visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
