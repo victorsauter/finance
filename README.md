@@ -20,6 +20,23 @@ No bank connection or shared-household service is implemented. No personal
 balances, statements or archived screenshots are
 included. A fresh installation starts with zero amounts.
 
+## Stack
+
+React 19, Vite and TypeScript. The UI is being rebuilt on Tailwind CSS v4,
+shadcn/ui, TanStack Router, `@dnd-kit` and TanStack Table, with Recharts planned
+for time series and `d3-sankey` kept for the cash-flow diagram. Data is stored
+locally with Dexie and optionally synced through Supabase. See
+[ADR 0001](./docs/adr/0001-ui-stack.md) for the decision and alternatives.
+
+## Roadmap
+
+Finance aims to become a personal, open-source household finance tracker:
+budgets, savings, loans, investments and net worth over time, using manual entry
+and file imports rather than bank connectors. Planned work is listed in
+[`docs/ROADMAP.md`](./docs/ROADMAP.md) with one GitHub issue per item; the
+storage and wealth direction is in
+[ADR 0002](./docs/adr/0002-wealth-tracking.md) (proposed).
+
 ## Development
 
 Use a current Node.js release supported by Vite and npm.
