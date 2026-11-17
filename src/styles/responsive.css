@@ -42,59 +42,19 @@
     width: 2.75rem;
     justify-content: center;
     padding: 0;
-    font-size: 0;
+  }
+
+  .sidebar-meta .offline-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .theme-segmented {
     grid-template-columns: 1fr;
-  }
-
-  .summary-dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-hero {
-    grid-template-columns: 1fr auto;
-    align-items: end;
-  }
-
-  .summary-hero strong {
-    margin: 0;
-    text-align: right;
-  }
-
-  .summary-hero .summary-rate {
-    grid-column: 1 / -1;
-  }
-
-  .workspace-grid {
-    grid-template-columns: minmax(23rem, 0.9fr) minmax(27rem, 1.1fr);
-  }
-}
-
-@media (max-width: 980px) {
-  .workspace-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .visualization-column {
-    grid-template-columns: 1fr;
-  }
-
-  .allocation-card {
-    order: -1;
-  }
-
-  .month-toolbar {
-    grid-template-columns: 1fr auto;
-  }
-
-  .month-heading {
-    grid-column: 1 / -1;
-  }
-
-  .transaction-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -105,17 +65,19 @@
 
   .app-canvas {
     margin-left: 0;
-    padding-top: calc(4.65rem + env(safe-area-inset-top, 0px));
+    padding-top: calc(
+      var(--mobile-header-clearance) + env(safe-area-inset-top, 0px)
+    );
   }
 
   .mobile-header {
     position: fixed;
-    top: max(0.55rem, env(safe-area-inset-top, 0px));
+    top: max(var(--mobile-header-offset), env(safe-area-inset-top, 0px));
     right: 0.75rem;
     left: 0.75rem;
-    z-index: 45;
+    z-index: var(--z-header);
     display: flex;
-    min-height: 3.75rem;
+    height: var(--mobile-header-height);
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
@@ -185,7 +147,7 @@
     right: auto;
     bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
     left: 50%;
-    z-index: 50;
+    z-index: var(--z-dock);
     display: grid;
     width: min(22rem, calc(100vw - 1.5rem));
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -241,273 +203,9 @@
   }
 
   .global-error {
-    top: calc(4.55rem + env(safe-area-inset-top, 0px));
-  }
-
-  .month-toolbar {
-    grid-template-columns: 1fr auto;
-    gap: 0.8rem;
-    margin-bottom: 1rem;
-  }
-
-  .month-heading {
-    grid-column: 1 / -1;
-  }
-
-  .month-name-input {
-    font-size: clamp(2.05rem, 10vw, 2.85rem);
-  }
-
-  .month-navigation {
-    min-width: 0;
-  }
-
-  .month-navigation select {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .month-actions .primary-button {
-    width: 2.75rem;
-    padding-inline: 0;
-    font-size: 0;
-  }
-
-  .month-actions .primary-button svg {
-    width: 19px;
-    height: 19px;
-  }
-
-  .month-actions-menu {
-    position: fixed;
-    top: auto;
-    right: 0.8rem;
-    bottom: calc(5.8rem + env(safe-area-inset-bottom, 0px));
-    width: min(18rem, calc(100vw - 1.6rem));
-  }
-
-  .summary-dashboard {
-    gap: 0.65rem;
-  }
-
-  .summary-hero {
-    display: block;
-    min-height: 9.4rem;
-    padding: 1.1rem;
-  }
-
-  .summary-hero strong {
-    display: block;
-    margin-top: 0.75rem;
-    text-align: left;
-  }
-
-  .summary-metrics {
-    gap: 0.55rem;
-  }
-
-  .summary-card {
-    min-height: 7rem;
-    padding: 0.85rem;
-    border-radius: var(--radius-md);
-  }
-
-  .summary-card strong {
-    font-size: clamp(1rem, 4.5vw, 1.3rem);
-  }
-
-  .editor-card,
-  .chart-card,
-  .allocation-card,
-  .import-card {
-    padding: 1rem;
-    border-radius: var(--radius-lg);
-  }
-
-  .card-hint {
-    display: none;
-  }
-
-  .editable-row {
-    grid-template-columns: minmax(0, 1fr) 7.4rem;
-  }
-
-  .editable-row .row-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
-  }
-
-  .category-heading {
-    display: grid;
-    grid-template-columns: 1fr auto;
-  }
-
-  .category-title {
-    grid-column: 1 / -1;
-  }
-
-  .category-heading select {
-    max-width: none;
-  }
-
-  .chart-scroll {
-    min-height: 25rem;
-    margin-right: -1rem;
-    margin-left: -1rem;
-    width: calc(100% + 2rem);
-    padding-inline: 1rem;
-  }
-
-  .transactions-intro,
-  .import-heading,
-  .import-preview-heading {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .transactions-intro .page-intro {
-    margin-bottom: 0;
-  }
-
-  .month-filter {
-    width: 100%;
-    flex-basis: auto;
-    margin-bottom: 0.75rem;
-  }
-
-  .import-heading > .primary-button {
-    width: 100%;
-  }
-
-  .import-notice {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .import-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .import-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .import-actions button {
-    width: 100%;
-  }
-
-  .transactions-card-heading {
-    padding: 1rem;
-  }
-
-  .transactions-table {
-    overflow: visible;
-  }
-
-  .transactions-table table,
-  .transactions-table tbody,
-  .transactions-table tr,
-  .transactions-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .transactions-table thead {
-    display: none;
-  }
-
-  .transactions-table tbody {
-    display: grid;
-    gap: 0;
-  }
-
-  .transactions-table tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    padding: 0.9rem 1rem;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .transactions-table tr:last-child {
-    border-bottom: 0;
-  }
-
-  .transactions-table td {
-    min-width: 0 !important;
-    padding: 0.45rem 0;
-    border: 0;
-    text-align: left;
-  }
-
-  .transactions-table td:first-child {
-    grid-column: 1 / -1;
-    padding-top: 0;
-    padding-bottom: 0.75rem;
-  }
-
-  .transactions-table td[data-label]::before {
-    display: block;
-    margin-bottom: 0.3rem;
-    color: var(--muted);
-    content: attr(data-label);
-    font-size: 0.58rem;
-    font-weight: 720;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  .transactions-table td:first-child::before {
-    display: none;
-  }
-
-  .transactions-table select {
-    width: calc(100% - 0.4rem);
-    min-width: 0;
-  }
-
-  .transactions-table td:nth-child(3) select {
-    margin-left: 0.4rem;
-  }
-
-  .transactions-table td:nth-child(3)::before {
-    margin-left: 0.4rem;
-  }
-
-  .transaction-actions-cell {
-    grid-column: 2;
-    grid-row: 3;
-    justify-self: end;
-    width: auto !important;
-  }
-
-  .month-actions {
-    display: flex;
-    width: auto;
-  }
-
-  .transaction-description {
-    grid-template-columns: 3.2rem minmax(0, 1fr);
-  }
-
-  .settings-card {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.8rem;
-    padding: 1rem;
-  }
-
-  .settings-card > button {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
-  .danger-zone {
-    border-radius: var(--radius-lg);
-  }
-
-  .page-title-with-icon {
-    align-items: flex-start;
+    top: calc(
+      var(--mobile-header-clearance) + env(safe-area-inset-top, 0px)
+    );
   }
 }
 
@@ -523,49 +221,6 @@
 
   .brand.is-compact .brand-copy {
     max-width: 5.4rem;
-  }
-
-  .summary-card {
-    min-width: 0;
-    padding: 0.7rem;
-  }
-
-  .summary-card > span,
-  .summary-card small {
-    font-size: 0.58rem;
-  }
-
-  .summary-card strong {
-    overflow-wrap: anywhere;
-  }
-
-  .transaction-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .transaction-summary-grid article {
-    min-height: 7rem;
-    padding: 0.8rem;
-  }
-
-  .transaction-summary-grid strong {
-    font-size: 1.12rem;
-  }
-
-  .editable-row {
-    grid-template-columns: minmax(0, 1fr) 6.9rem;
-  }
-
-  .row-actions {
-    width: 100%;
-  }
-
-  .row-actions .mini-button {
-    flex: 1;
-  }
-
-  .page-intro h1 {
-    font-size: 2rem;
   }
 }
 

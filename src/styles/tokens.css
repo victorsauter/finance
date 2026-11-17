@@ -85,6 +85,26 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-fast: 140ms;
   --duration-medium: 220ms;
+
+  /* Stacking order for fixed and floating layers. Local z-index: 1 inside a
+     card is fine; anything that overlays the page uses this scale. */
+  --z-toolbar: 12;
+  --z-banner: 35;
+  --z-sidebar: 40;
+  --z-header: 45;
+  --z-dock: 50;
+  --z-popover: 60;
+
+  /* Gap between cards on a page. Breakpoints cannot be tokens (custom
+     properties do not work in media queries): see src/styles/README.md. */
+  --layout-gap: 0.9rem;
+
+  /* Fixed mobile header: its height is fixed so the page can reserve it. */
+  --mobile-header-offset: 0.55rem;
+  --mobile-header-height: 3.75rem;
+  --mobile-header-clearance: calc(
+    var(--mobile-header-offset) + var(--mobile-header-height) + 0.35rem
+  );
 }
 
 :root[data-theme='dark'] {

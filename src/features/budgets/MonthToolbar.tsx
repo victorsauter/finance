@@ -109,7 +109,7 @@ export function MonthToolbar() {
           onClick={() => createMonth(false)}
         >
           <Plus aria-hidden="true" size={17} />
-          New month
+          <span className="button-label">New month</span>
         </button>
         <details ref={actionsRef} className="month-more">
           <summary className="icon-button" aria-label="Budget actions">

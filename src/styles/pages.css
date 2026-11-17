@@ -1,0 +1,31 @@
+/* Rules shared by several pages. Page-specific rules live in the page files. */
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.card-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.06rem;
+  letter-spacing: -0.025em;
+}
+
+.negative-text {
+  color: var(--danger-strong);
+}
+
+@media (max-width: 760px) {
+  .page-title-with-icon {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-intro h1 {
+    font-size: 2rem;
+  }
+}
