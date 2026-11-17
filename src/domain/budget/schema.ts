@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { MAX_AMOUNT_CENTS } from './money'
+import { monthKey as toMonthKey } from './factory'
 import { CURRENT_SCHEMA_VERSION } from './models'
 
 const idSchema = z.uuid()
@@ -110,7 +111,7 @@ export const appDataSchema = z.object({
   }
 
   data.budgetMonths.forEach((budget, budgetIndex) => {
-    const monthKey = `${budget.year}-${String(budget.month).padStart(2, '0')}`
+    const monthKey = toMonthKey(budget.year, budget.month)
     if (monthKeys.has(monthKey)) {
       context.addIssue({
         code: 'custom',

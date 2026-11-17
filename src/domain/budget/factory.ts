@@ -122,3 +122,55 @@ export function nextMonth(year: number, month: number) {
     ? { year: year + 1, month: 1 }
     : { year, month: month + 1 }
 }
+
+export function previousMonth(year: number, month: number) {
+  return month === 1
+    ? { year: year - 1, month: 12 }
+    : { year, month: month - 1 }
+}
+
+/** Canonical `YYYY-MM` key of a budget month. */
+export function monthKey(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}`
+}
+
+function monthIndex(year: number, month: number): number {
+  return year * 12 + month
+}
+
+export function findBudget(
+  data: Pick<AppData, 'budgetMonths'>,
+  year: number,
+  month: number,
+): BudgetMonth | undefined {
+  return data.budgetMonths.find(
+    (budget) => budget.year === year && budget.month === month,
+  )
+}
+
+/**
+ * Builds the content of a month that does not exist yet: a copy of the
+ * nearest earlier persisted month (fresh identifiers), or an empty month when
+ * nothing precedes it.
+ */
+export function seedMonthFrom(
+  data: Pick<AppData, 'budgetMonths'>,
+  year: number,
+  month: number,
+): BudgetMonth {
+  const target = monthIndex(year, month)
+  let nearest: BudgetMonth | undefined
+  for (const budget of data.budgetMonths) {
+    const index = monthIndex(budget.year, budget.month)
+    if (
+      index < target &&
+      (!nearest || index > monthIndex(nearest.year, nearest.month))
+    ) {
+      nearest = budget
+    }
+  }
+
+  return nearest
+    ? cloneBudgetMonth(nearest, year, month)
+    : createEmptyBudgetMonth(year, month)
+}
