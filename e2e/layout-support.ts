@@ -112,6 +112,27 @@ export function inspectLayout() {
     }
   }
 
+  // 3b. The shell's boxes (sidebar, mobile header, dock) must hold their own
+  // content: a label wider than the sidebar spills over the page.
+  for (const box of document.querySelectorAll('aside, header.fixed, nav.fixed')) {
+    if (!box.checkVisibility()) continue
+    const br = box.getBoundingClientRect()
+    for (const el of box.querySelectorAll('*')) {
+      if (el.closest('svg') || !measurable(el) || positioned(el)) continue
+      const r = el.getBoundingClientRect()
+      if (r.right > br.right + 1 || r.left < br.left - 1) {
+        problems.push(`${label(el)} sticks out of the ${box.tagName.toLowerCase()} (${Math.round(Math.max(r.right - br.right, br.left - r.left))}px)`)
+      }
+    }
+  }
+
+  // 3c. Amount fields must show their whole value.
+  for (const input of document.querySelectorAll('main input[inputmode="decimal"]')) {
+    if (measurable(input) && input.scrollWidth > input.clientWidth + 1) {
+      problems.push(`${label(input)} clips its value (${input.scrollWidth} > ${input.clientWidth})`)
+    }
+  }
+
   // 4. Text cut off without an ellipsis.
   const textBoxes = 'main h1, main h2, main h3, main p, main label, main button, main a, main [data-slot="badge"]'
   for (const el of document.querySelectorAll(textBoxes)) {
@@ -121,6 +142,28 @@ export function inspectLayout() {
     if (style.textOverflow === 'ellipsis') continue
     if (el.scrollWidth > el.clientWidth + 1) {
       problems.push(`${label(el)} clips its text (${el.scrollWidth} > ${el.clientWidth})`)
+    }
+  }
+
+  // 4a. The page title stays on one line and its description stays readable:
+  // a header squeezed beside its actions wraps word by word.
+  const title = document.querySelector('main h1')
+  if (title && measurable(title)) {
+    const lineHeight = parseFloat(getComputedStyle(title).lineHeight)
+    if (title.getBoundingClientRect().height > lineHeight * 1.5) {
+      problems.push(`page title "${title.textContent}" wraps onto several lines`)
+    }
+  }
+  for (const p of document.querySelectorAll('main header p')) {
+    if (measurable(p) && p.getBoundingClientRect().width < 200 && vw >= 360) {
+      problems.push(`${label(p)} is squeezed to ${Math.round(p.getBoundingClientRect().width)}px`)
+    }
+  }
+
+  // 4b. Navigation labels are short and fixed: an ellipsis there is a bug.
+  for (const el of document.querySelectorAll('nav a span')) {
+    if (measurable(el) && el.scrollWidth > el.clientWidth + 1) {
+      problems.push(`navigation label "${el.textContent}" is truncated (${el.scrollWidth} > ${el.clientWidth})`)
     }
   }
 
