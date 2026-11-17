@@ -14,12 +14,9 @@ import {
   loadLegacyBudgetData,
 } from '../data/indexeddb/IndexedDbBudgetRepository'
 import {
-  cloneBudgetMonth,
-  createEmptyBudgetMonth,
   createInitialAppData,
   findBudget,
   monthKey,
-  nextMonth,
   seedMonthFrom,
 } from '../domain/budget/factory'
 import type {
@@ -299,57 +296,6 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
     [commit, currentVirtual, setVirtual],
   )
 
-  // TODO(wave-2): remove with MonthToolbar; the calendar uses openMonth.
-  const goToAdjacentBudget = useCallback(
-    (direction: -1 | 1) => {
-      const current = dataRef.current
-      if (!current) return
-      const sorted = [...current.budgetMonths].sort(
-        (left, right) =>
-          left.year * 12 + left.month - (right.year * 12 + right.month),
-      )
-      const currentIndex = sorted.findIndex(
-        (budget) => budget.id === current.settings.activeBudgetMonthId,
-      )
-      const target = sorted[currentIndex + direction]
-      if (target) openMonth(target.year, target.month)
-    },
-    [openMonth],
-  )
-
-  // TODO(wave-2): remove with MonthToolbar; the calendar uses openMonth.
-  const createFollowingBudget = useCallback(
-    (copyCurrent: boolean) => {
-      const current = dataRef.current
-      if (!current) return
-      const active =
-        currentVirtual() ??
-        current.budgetMonths.find(
-          (budget) => budget.id === current.settings.activeBudgetMonthId,
-        )
-      if (!active) return
-      const following = nextMonth(active.year, active.month)
-      if (findBudget(current, following.year, following.month)) {
-        openMonth(following.year, following.month)
-        return
-      }
-      setVirtual(
-        copyCurrent
-          ? cloneBudgetMonth(active, following.year, following.month)
-          : createEmptyBudgetMonth(following.year, following.month),
-      )
-      // The legacy flow saved the new month immediately.
-      updateActiveBudget(() => undefined)
-    },
-    [currentVirtual, openMonth, setVirtual, updateActiveBudget],
-  )
-
-  // TODO(wave-2): remove with MonthToolbar; months can no longer be deleted.
-  const deleteActiveBudget = useCallback(() => {
-    resetActiveBudget()
-    return true
-  }, [resetActiveBudget])
-
   const importTransactions = useCallback(
     (transactions: ImportedTransaction[]) => {
       const existingSourceKeys = new Set(
@@ -519,9 +465,6 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
             openMonth,
             resetActiveBudget,
             setActiveBudget,
-            goToAdjacentBudget,
-            createFollowingBudget,
-            deleteActiveBudget,
             updateActiveBudget,
             importTransactions,
             setTransactionCategory,
@@ -543,9 +486,6 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
       openMonth,
       resetActiveBudget,
       setActiveBudget,
-      goToAdjacentBudget,
-      createFollowingBudget,
-      deleteActiveBudget,
       updateActiveBudget,
       importTransactions,
       setTransactionCategory,

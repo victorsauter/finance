@@ -209,19 +209,3 @@ describe('resetActiveBudget', () => {
     expect(repository.saves).toBe(0)
   })
 })
-
-describe('deprecated wrappers', () => {
-  it('createFollowingBudget still creates and saves the next month', async () => {
-    const { hook, repository } = await setup()
-
-    act(() => hook.result.current.createFollowingBudget(true))
-
-    await waitFor(() => expect(repository.saves).toBe(1))
-    expect(hook.result.current.activeBudgetIsVirtual).toBe(false)
-    expect(hook.result.current.activeBudget.month).toBe(4)
-    expect(hook.result.current.activeBudget.incomes[0]!.amountCents).toBe(
-      300_000,
-    )
-    expect(repository.saved!.budgetMonths).toHaveLength(2)
-  })
-})

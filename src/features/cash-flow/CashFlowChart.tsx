@@ -56,10 +56,10 @@ function useContainerWidth() {
 
 const NODE_WIDTH = 18
 const EDGE = 16
-// Average glyph width of the 0.64rem bold labels, used to fit names.
-const CHAR_WIDTH = 5.8
+// Average glyph width of the text-xs semibold labels, used to fit names.
+const CHAR_WIDTH = 6.6
 // Room kept on the right so the last column's labels also sit beside their node.
-const LABEL_MARGIN = 118
+const LABEL_MARGIN = 128
 const LABEL_GAP = 8
 
 export function CashFlowChart({ model }: { model: CashFlowModel }) {
@@ -106,23 +106,32 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
 
   if (width !== null && model.links.length > 0 && isNarrow) {
     return (
-      <div ref={containerRef} className="chart-scroll">
+      <div ref={containerRef} className="w-full min-w-0">
         <FlowList model={model} />
       </div>
     )
   }
 
   return (
-    <div ref={containerRef} className="chart-scroll">
+    <div ref={containerRef} className="w-full min-w-0">
       {width === null ? null : !graph ? (
-        <div className="chart-empty">
-          <div aria-hidden="true">↗</div>
-          <h3>Your cash flow will appear here</h3>
-          <p>Add amounts to visualise how your money moves.</p>
+        <div className="grid min-h-64 place-content-center justify-items-center gap-1 p-6 text-center">
+          <div
+            aria-hidden="true"
+            className="mb-2 grid size-12 place-items-center rounded-xl bg-accent text-lg text-accent-foreground"
+          >
+            ↗
+          </div>
+          <h3 className="font-heading text-base font-semibold">
+            Your cash flow will appear here
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Add amounts to visualise how your money moves.
+          </p>
         </div>
       ) : (
         <svg
-          className="sankey-chart"
+          className="block h-auto max-w-full"
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           width={chartWidth}
           height={chartHeight}
@@ -137,7 +146,7 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
             {graph.links.map((link, index) => (
               <path
                 key={`${endpointName(link.source)}-${endpointName(link.target)}-${index}`}
-                className="sankey-link"
+                className="fill-none opacity-25 transition-opacity hover:opacity-60"
                 d={linkPath(link) ?? undefined}
                 stroke={
                   nodeColors[
@@ -163,9 +172,11 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
               const y1 = node.y1 ?? 0
               const labelX = x1 + LABEL_GAP
               const maxChars =
-                (node.layer ?? 0) >= lastLayer ? lastLabelChars : middleLabelChars
+                (node.layer ?? 0) >= lastLayer
+                  ? lastLabelChars
+                  : middleLabelChars
               return (
-                <g key={node.id} className="sankey-node">
+                <g key={node.id}>
                   <rect
                     x={x0}
                     y={y0}
@@ -174,12 +185,22 @@ export function CashFlowChart({ model }: { model: CashFlowModel }) {
                     rx="5"
                     fill={nodeColors[node.kind]}
                   />
-                  <text x={labelX} y={(y0 + y1) / 2}>
+                  <text
+                    x={labelX}
+                    y={(y0 + y1) / 2}
+                    className="pointer-events-none fill-foreground stroke-card stroke-3 text-xs font-semibold"
+                    // Halo keeps labels readable where they cross a flow band.
+                    style={{ paintOrder: 'stroke', strokeLinejoin: 'round' }}
+                  >
                     <title>{`${node.name} ${formatMoney(node.value ?? 0)}`}</title>
                     <tspan x={labelX} dy="-0.2em">
                       {truncateLabel(node.name, maxChars)}
                     </tspan>
-                    <tspan className="node-value" x={labelX} dy="1.25em">
+                    <tspan
+                      className="fill-muted-foreground font-normal"
+                      x={labelX}
+                      dy="1.25em"
+                    >
                       {formatMoney(node.value ?? 0)}
                     </tspan>
                   </text>
