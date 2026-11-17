@@ -1,12 +1,18 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { Download, FileUp, ShieldCheck, Trash2 } from 'lucide-react'
-import { useBudget } from '../../app/budget-context'
-import { CURRENT_SCHEMA_VERSION } from '../../domain/budget/models'
-import { parseAppData } from '../../domain/budget/schema'
-import { useConfirm } from '../../components/ui/confirm-context'
+import { Download, FileUp, Trash2 } from 'lucide-react'
+import { useBudget } from '@/app/budget-context'
+import { useSync } from '@/app/sync-context'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
+import { Button } from '@/components/ui/button'
+import { useConfirm } from '@/components/ui/confirm-context'
+import { Notice } from '@/components/ui/notice'
+import { StatList } from '@/components/ui/stat-list'
+import { touchControl } from '@/components/ui/touch'
+import { CURRENT_SCHEMA_VERSION } from '@/domain/budget/models'
+import { parseAppData } from '@/domain/budget/schema'
 import { describeBackupError } from './describe-backup-error'
 import { downloadJson } from './download'
-import { useSync } from '../../app/sync-context'
 
 const MAX_BACKUP_BYTES = 20 * 1024 * 1024
 
@@ -74,7 +80,11 @@ export function BackupPage() {
       if (cloudEnabled) downloadJson('finance-before-reset.json', data)
       await resetData()
       setIsError(false)
-      setMessage(cloudEnabled ? 'Account data has been reset locally. Check the sync status before closing this device.' : 'Local data has been reset.')
+      setMessage(
+        cloudEnabled
+          ? 'Account data has been reset locally. Check the sync status before closing this device.'
+          : 'Local data has been reset.',
+      )
     } catch (resetError) {
       setIsError(true)
       setMessage(
@@ -86,97 +96,87 @@ export function BackupPage() {
   }
 
   return (
-    <main className="content-page narrow-page">
-      <div className="page-intro">
-          <p className="eyebrow">Local data</p>
-        <div className="page-title-with-icon">
-          <span aria-hidden="true">
-            <ShieldCheck size={22} />
-          </span>
-          <h1>Backup and restore</h1>
-        </div>
-        <p>
-          Keep a JSON backup regularly. {cloudEnabled
+    <>
+      <PageHeader
+        eyebrow="Settings"
+        title="Backup and restore"
+        description={`Keep a JSON backup regularly. ${
+          cloudEnabled
             ? 'Cloud sync copies changes between your devices; it is not a historical backup. Restores and resets here affect your synced account.'
-            : 'These budgets are stored in this browser. On iPhone, the system can clear unused site storage.'}
-        </p>
-      </div>
+            : 'These budgets are stored in this browser. On iPhone, the system can clear unused site storage.'
+        }`}
+      />
 
       {message && (
-        <div
-          className={`notice ${isError ? 'notice-error' : 'notice-success'}`}
-          role={isError ? 'alert' : 'status'}
-        >
-          {message}
-        </div>
+        <Notice tone={isError ? 'error' : 'success'}>{message}</Notice>
       )}
 
-      <div className="settings-group">
-      <section className="settings-card">
-        <span className="settings-icon is-primary" aria-hidden="true">
-          <Download size={20} />
-        </span>
-        <div className="settings-copy">
-          <p className="eyebrow">Export</p>
-          <h2>Download a copy</h2>
-          <p>
-            This backup contains {data.budgetMonths.length} budget(s) and{' '}
-            {data.importedTransactions.length} transaction(s), using data
-            format version {CURRENT_SCHEMA_VERSION}.
-          </p>
+      <Section
+        title="Download a copy"
+        description="Save everything in a single JSON file you can restore later."
+        contentClassName="flex flex-col gap-4"
+      >
+        <StatList
+          items={[
+            { label: 'Budgets', value: data.budgetMonths.length },
+            { label: 'Transactions', value: data.importedTransactions.length },
+            { label: 'Data format version', value: CURRENT_SCHEMA_VERSION },
+          ]}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            className={touchControl}
+            onClick={exportBackup}
+          >
+            <Download aria-hidden="true" />
+            Download JSON
+          </Button>
         </div>
-        <button type="button" className="primary-button" onClick={exportBackup}>
-          <Download aria-hidden="true" size={17} />
-          Download JSON
-        </button>
-      </section>
+      </Section>
 
-      <section className="settings-card">
-        <span className="settings-icon is-secondary" aria-hidden="true">
-          <FileUp size={20} />
-        </span>
-        <div className="settings-copy">
-          <p className="eyebrow">Restore</p>
-          <h2>Import a backup</h2>
-          <p>
-            The file is fully validated before it replaces local data.
-          </p>
-        </div>
+      <Section
+        title="Import a backup"
+        description="The file is fully validated before it replaces local data, and you confirm first."
+        contentClassName="flex flex-wrap gap-2"
+      >
         <input
           ref={inputRef}
-          className="visually-hidden"
+          hidden
           type="file"
           accept="application/json,.json"
+          aria-label="Backup file"
           onChange={(event) => void importBackup(event)}
         />
-        <button
+        <Button
           type="button"
-          className="secondary-button"
+          variant="outline"
+          className={touchControl}
           onClick={() => inputRef.current?.click()}
         >
-          <FileUp aria-hidden="true" size={17} />
+          <FileUp aria-hidden="true" />
           Choose a file
-        </button>
-      </section>
-      </div>
+        </Button>
+      </Section>
 
-      <section className="settings-card danger-zone">
-        <span className="settings-icon is-danger" aria-hidden="true">
-          <Trash2 size={20} />
-        </span>
-        <div className="settings-copy">
-          <p className="eyebrow">Danger zone</p>
-          <h2>Reset the app</h2>
-          <p>
-            All budgets and imported transactions {cloudEnabled ? 'in this synced account' : 'on this device'} will be
-            replaced with an empty month.
-          </p>
-        </div>
-        <button type="button" className="danger-button" onClick={() => void reset()}>
-          <Trash2 aria-hidden="true" size={17} />
+      <Section
+        title="Reset the app"
+        description={`All budgets and imported transactions ${
+          cloudEnabled ? 'in this synced account' : 'on this device'
+        } will be replaced with an empty month.`}
+        className="ring-destructive/30"
+        contentClassName="flex flex-wrap gap-2"
+      >
+        <Button
+          type="button"
+          variant="destructive"
+          className={touchControl}
+          onClick={() => void reset()}
+        >
+          <Trash2 aria-hidden="true" />
           Reset everything
-        </button>
-      </section>
-    </main>
+        </Button>
+      </Section>
+    </>
   )
 }
