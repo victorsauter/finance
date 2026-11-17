@@ -6,7 +6,11 @@ import type {
   Income,
   Account,
 } from './models'
-import { CURRENT_SCHEMA_VERSION } from './models'
+import {
+  CURRENT_SCHEMA_VERSION,
+  MAX_BUDGET_YEAR,
+  MIN_BUDGET_YEAR,
+} from './models'
 
 export function createId(): string {
   return crypto.randomUUID()
@@ -132,6 +136,18 @@ export function previousMonth(year: number, month: number) {
 /** Canonical `YYYY-MM` key of a budget month. */
 export function monthKey(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, '0')}`
+}
+
+/** True when the month can be stored: a real month of a supported year. */
+export function isBudgetMonthInRange(year: number, month: number): boolean {
+  return (
+    Number.isInteger(year) &&
+    Number.isInteger(month) &&
+    year >= MIN_BUDGET_YEAR &&
+    year <= MAX_BUDGET_YEAR &&
+    month >= 1 &&
+    month <= 12
+  )
 }
 
 function monthIndex(year: number, month: number): number {

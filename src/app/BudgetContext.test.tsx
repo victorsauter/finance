@@ -208,4 +208,54 @@ describe('resetActiveBudget', () => {
     expect(hook.result.current.activeBudget.id).not.toBe(before)
     expect(repository.saves).toBe(0)
   })
+
+  it('does not save when you only view another saved month', async () => {
+    const data = seededData()
+    data.budgetMonths.push(createEmptyBudgetMonth(2026, 4))
+    const { hook, repository } = await setup(data)
+    const persistedId = hook.result.current.data.settings.activeBudgetMonthId
+
+    act(() => hook.result.current.openMonth(2026, 4))
+
+    expect(hook.result.current.activeBudget.month).toBe(4)
+    expect(hook.result.current.activeBudgetIsVirtual).toBe(false)
+    expect(hook.result.current.data.settings.activeBudgetMonthId).toBe(
+      persistedId,
+    )
+    expect(repository.saves).toBe(0)
+  })
+
+  it('makes the viewed month the active one on its first edit', async () => {
+    const data = seededData()
+    const april = createEmptyBudgetMonth(2026, 4)
+    data.budgetMonths.push(april)
+    const { hook, repository } = await setup(data)
+
+    act(() => hook.result.current.openMonth(2026, 4))
+    act(() =>
+      hook.result.current.updateActiveBudget((budget) => {
+        budget.name = 'April plan'
+      }),
+    )
+
+    await waitFor(() => expect(repository.saves).toBe(1))
+    expect(repository.saved!.settings.activeBudgetMonthId).toBe(april.id)
+    expect(
+      repository.saved!.budgetMonths.find((budget) => budget.id === april.id)!
+        .name,
+    ).toBe('April plan')
+  })
+
+  it('refuses months outside the supported years', async () => {
+    const { hook, repository } = await setup()
+    const before = hook.result.current.activeBudget.id
+
+    act(() => hook.result.current.openMonth(1999, 12))
+    act(() => hook.result.current.openMonth(2201, 1))
+    act(() => hook.result.current.openMonth(2026, 13))
+
+    expect(hook.result.current.activeBudget.id).toBe(before)
+    expect(hook.result.current.activeBudgetIsVirtual).toBe(false)
+    expect(repository.saves).toBe(0)
+  })
 })

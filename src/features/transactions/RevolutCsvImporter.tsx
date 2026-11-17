@@ -10,7 +10,7 @@ import {
   type RevolutCsvIssueReason,
   type RevolutCsvResult,
 } from '@/domain/transactions/revolut-csv'
-import { Notice } from './Notice'
+import { Notice } from '@/components/ui/notice'
 
 const PREVIEW_ROW_LIMIT = 8
 const ISSUE_LIMIT = 20
@@ -159,7 +159,7 @@ export function RevolutCsvImporter({
 
       {message && (
         <Notice
-          tone={isError ? 'danger' : 'success'}
+          tone={isError ? 'error' : 'success'}
           role={isError ? 'alert' : 'status'}
           action={
             lastImport &&

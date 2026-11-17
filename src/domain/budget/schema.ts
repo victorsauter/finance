@@ -1,7 +1,11 @@
 import { z } from 'zod'
 import { MAX_AMOUNT_CENTS } from './money'
 import { monthKey as toMonthKey } from './factory'
-import { CURRENT_SCHEMA_VERSION } from './models'
+import {
+  CURRENT_SCHEMA_VERSION,
+  MAX_BUDGET_YEAR,
+  MIN_BUDGET_YEAR,
+} from './models'
 
 const idSchema = z.uuid()
 const centsSchema = z.number().int().nonnegative().max(MAX_AMOUNT_CENTS)
@@ -37,7 +41,7 @@ export const expenseCategorySchema = z.object({
 
 export const budgetMonthSchema = z.object({
   id: idSchema,
-  year: z.number().int().min(2000).max(2200),
+  year: z.number().int().min(MIN_BUDGET_YEAR).max(MAX_BUDGET_YEAR),
   month: z.number().int().min(1).max(12),
   name: z.string().trim().min(1),
   incomes: z.array(incomeSchema),

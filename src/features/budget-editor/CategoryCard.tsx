@@ -1,5 +1,5 @@
 import { NameInput } from '@/components/forms/NameInput'
-import { NativeSelect } from '@/components/forms/NativeSelect'
+import { NativeSelect } from '@/components/ui/native-select'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import type { ExpenseCategory } from '@/domain/budget/models'
 import { formatMoney } from '@/domain/budget/money'
@@ -52,7 +52,8 @@ export function CategoryCard({
             {formatMoney(subtotalCents)}
           </span>
           <NativeSelect
-            className="col-span-3 col-start-2 row-start-2 @md:col-span-1 @md:col-start-4 @md:row-start-1 @md:w-40"
+            wrapperClassName="col-span-3 col-start-2 row-start-2 @md:col-span-1 @md:col-start-4 @md:row-start-1 @md:w-40"
+            className="h-9"
             aria-label={`Account for ${category.name}`}
             value={category.accountId ?? ''}
             onChange={(event) =>

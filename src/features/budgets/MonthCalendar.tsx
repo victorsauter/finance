@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getMonthName, monthKey } from '@/domain/budget/factory'
+import { MAX_BUDGET_YEAR, MIN_BUDGET_YEAR } from '@/domain/budget/models'
 import { cn } from '@/lib/utils'
 
 // Fixed English labels: Intl's en-GB short form is "Sept" for September.
@@ -55,6 +56,7 @@ export function MonthCalendar({
           variant="ghost"
           className="size-11"
           aria-label="Previous year"
+          disabled={year <= MIN_BUDGET_YEAR}
           onClick={() => onYearChange(year - 1)}
         >
           <ChevronLeft aria-hidden="true" />
@@ -71,6 +73,7 @@ export function MonthCalendar({
           variant="ghost"
           className="size-11"
           aria-label="Next year"
+          disabled={year >= MAX_BUDGET_YEAR}
           onClick={() => onYearChange(year + 1)}
         >
           <ChevronRight aria-hidden="true" />

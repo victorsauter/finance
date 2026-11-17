@@ -15,7 +15,7 @@ import { formatMoney } from '@/domain/budget/money'
 import { formatMonthKey } from '@/domain/transactions/format'
 import { cn } from '@/lib/utils'
 import { listMonthKeys, summarizeMonth } from './month-summary'
-import { Notice } from './Notice'
+import { Notice } from '@/components/ui/notice'
 import { RevolutCsvImporter } from './RevolutCsvImporter'
 import { TransactionsTable } from './TransactionsTable'
 

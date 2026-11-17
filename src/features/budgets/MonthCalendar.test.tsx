@@ -80,4 +80,15 @@ describe('MonthCalendar', () => {
       expect(button.className).toMatch(/\b(h-11|size-11)\b/)
     }
   })
+
+  it('stops at the first and last supported year', () => {
+    renderCalendar({ year: 2000 })
+    expect(screen.getByRole('button', { name: 'Previous year' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next year' })).toBeEnabled()
+    cleanup()
+
+    renderCalendar({ year: 2200 })
+    expect(screen.getByRole('button', { name: 'Next year' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Previous year' })).toBeEnabled()
+  })
 })

@@ -148,25 +148,28 @@ export function useBudgetEditor() {
 
   const removeWithUndo = (ref: ListRef, id: string, noun: string) => {
     const monthId = activeBudget.id
-    const removal: { current: { item: Row; index: number } | null } = {
-      current: null,
-    }
+    // Read what is removed from the current snapshot, not from a side effect
+    // of the mutator, so the Undo never depends on when updateActiveBudget
+    // runs it.
+    const index =
+      getList(activeBudget, ref)?.findIndex((row) => row.id === id) ?? -1
+    const snapshot = getList(activeBudget, ref)?.[index]
+    if (!snapshot) return
+    const item = structuredClone(snapshot)
     updateActiveBudget((draft) => {
       const list = getList(draft, ref)
-      if (list) removal.current = removeById(list, id)
+      if (list) removeById(list, id)
     })
-    const result = removal.current
-    if (!result) return
     toast(`${noun} deleted`, {
-      description: result.item.name,
+      description: item.name,
       action: {
         label: 'Undo',
         onClick: () =>
           updateActiveBudget((draft) => {
             if (draft.id !== monthId) return
             const list = getList(draft, ref)
-            if (list && !list.some((row) => row.id === result.item.id)) {
-              insertAt(list, result.item, result.index)
+            if (list && !list.some((row) => row.id === item.id)) {
+              insertAt(list, item, index)
             }
           }),
       },

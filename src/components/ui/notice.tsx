@@ -1,16 +1,17 @@
 import type { ComponentProps, ReactNode } from 'react'
-import { AlertCircle, CheckCircle2, Info, type LucideIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon, InfoIcon } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const noticeVariants = cva(
-  'flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm',
+  'flex flex-wrap items-start gap-x-3 gap-y-2 rounded-xl border px-4 py-3 text-sm',
   {
     variants: {
       tone: {
-        error: 'border-destructive/30 bg-destructive-soft text-destructive',
-        success: 'border-success/30 bg-success-soft text-success',
-        info: 'border-primary/20 bg-accent text-accent-foreground',
+        info: 'border-border bg-muted text-foreground',
+        success: 'border-success/30 bg-success-soft text-foreground',
+        warning: 'border-warning/30 bg-warning-soft text-foreground',
+        error: 'border-destructive/30 bg-destructive-soft text-foreground',
       },
     },
     defaultVariants: { tone: 'info' },
@@ -19,24 +20,37 @@ const noticeVariants = cva(
 
 type Tone = NonNullable<VariantProps<typeof noticeVariants>['tone']>
 
-const icons: Record<Tone, LucideIcon> = {
-  error: AlertCircle,
-  success: CheckCircle2,
-  info: Info,
+const icons = {
+  info: InfoIcon,
+  success: CheckCircle2Icon,
+  warning: AlertTriangleIcon,
+  error: AlertTriangleIcon,
+} as const
+
+const iconColors: Record<Tone, string> = {
+  info: 'text-muted-foreground',
+  success: 'text-success',
+  warning: 'text-warning',
+  error: 'text-destructive',
 }
 
 interface NoticeProps
-  extends Omit<ComponentProps<'div'>, 'children'>,
+  extends Omit<ComponentProps<'div'>, 'title'>,
     VariantProps<typeof noticeVariants> {
-  children: ReactNode
+  title?: ReactNode
+  /** Button or link aligned to the end of the notice. */
+  action?: ReactNode
 }
 
 /**
- * Inline feedback inside a page. Errors are announced as alerts, the rest as
- * polite status messages.
+ * Inline message inside a page: info, success, warning or error. Errors are
+ * announced as alerts, the other tones as polite status messages (pass `role`
+ * to override).
  */
 export function Notice({
   tone = 'info',
+  title,
+  action,
   className,
   children,
   ...props
@@ -49,8 +63,17 @@ export function Notice({
       className={cn(noticeVariants({ tone: current }), className)}
       {...props}
     >
-      <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-      <div className="min-w-0 flex-1 break-words">{children}</div>
+      <Icon
+        aria-hidden="true"
+        className={cn('mt-0.5 size-4 shrink-0', iconColors[current])}
+      />
+      <div className="min-w-0 flex-1 basis-40 space-y-0.5 break-words">
+        {title && <p className="font-medium">{title}</p>}
+        <div className={title ? 'text-muted-foreground' : undefined}>
+          {children}
+        </div>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   )
 }

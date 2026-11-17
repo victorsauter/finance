@@ -16,6 +16,7 @@ import {
 import {
   createInitialAppData,
   findBudget,
+  isBudgetMonthInRange,
   monthKey,
   seedMonthFrom,
 } from '../domain/budget/factory'
@@ -75,6 +76,11 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
   // or cloud sync until the first edit (see updateActiveBudget).
   const [virtualBudget, setVirtualBudget] = useState<BudgetMonth | null>(null)
   const virtualRef = useRef<BudgetMonth | null>(null)
+  // Saved month being viewed. Viewing is local state: only an edit (or an
+  // explicit setActiveBudget) writes `settings.activeBudgetMonthId`, so browsing
+  // months never triggers a save or a cloud version bump.
+  const [viewedId, setViewedId] = useState<string | null>(null)
+  const viewedRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!(repository instanceof CloudBudgetRepository)) return
@@ -176,6 +182,19 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
     setVirtualBudget(budget)
   }, [])
 
+  const setViewed = useCallback((id: string | null) => {
+    viewedRef.current = id
+    setViewedId(id)
+  }, [])
+
+  /** Id of the saved month the user is looking at (viewed, else persisted). */
+  const targetId = (draft: AppData): string | null => {
+    const viewed = viewedRef.current
+    return viewed && draft.budgetMonths.some((budget) => budget.id === viewed)
+      ? viewed
+      : draft.settings.activeBudgetMonthId
+  }
+
   // The virtual month only counts while no persisted month has its key (a
   // cloud sync or a restore may have created it in the meantime).
   const currentVirtual = useCallback((): BudgetMonth | null => {
@@ -188,37 +207,31 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
   const setActiveBudget = useCallback(
     (id: string) => {
       setVirtual(null)
+      setViewed(null)
       commit((draft) => {
         if (draft.budgetMonths.some((budget) => budget.id === id)) {
           draft.settings.activeBudgetMonthId = id
         }
       })
     },
-    [commit, setVirtual],
+    [commit, setVirtual, setViewed],
   )
 
   const openMonth = useCallback(
     (year: number, month: number) => {
       const current = dataRef.current
-      if (
-        !current ||
-        !Number.isInteger(year) ||
-        !Number.isInteger(month) ||
-        month < 1 ||
-        month > 12
-      ) {
-        return
-      }
+      if (!current || !isBudgetMonthInRange(year, month)) return
       const existing = findBudget(current, year, month)
       if (existing) {
-        setActiveBudget(existing.id)
+        setVirtual(null)
+        setViewed(existing.id)
         return
       }
       const virtual = currentVirtual()
       if (virtual && virtual.year === year && virtual.month === month) return
       setVirtual(seedMonthFrom(current, year, month))
     },
-    [currentVirtual, setActiveBudget, setVirtual],
+    [currentVirtual, setVirtual, setViewed],
   )
 
   const resetActiveBudget = useCallback(() => {
@@ -230,8 +243,9 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
       return
     }
     commit((draft) => {
+      const viewed = targetId(draft)
       const index = draft.budgetMonths.findIndex(
-        (budget) => budget.id === draft.settings.activeBudgetMonthId,
+        (budget) => budget.id === viewed,
       )
       const active = draft.budgetMonths[index]
       if (!active) return
@@ -269,10 +283,12 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
           }
           draft.settings.activeBudgetMonthId = budget.id
         } else {
+          const viewed = targetId(draft)
           budget = draft.budgetMonths.find(
-            (candidate) =>
-              candidate.id === draft.settings.activeBudgetMonthId,
+            (candidate) => candidate.id === viewed,
           )
+          // The first edit of a month you only browsed makes it the active one.
+          if (budget) draft.settings.activeBudgetMonthId = budget.id
         }
         if (!budget) return
         update(budget)
@@ -405,6 +421,7 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
         await store.replace(validated)
         dataRef.current = validated
         setVirtual(null)
+        setViewed(null)
         setData(validated)
         setSaveStatus('saved')
       } catch (replaceError) {
@@ -415,7 +432,7 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
         throw replaceError
       }
     },
-    [store, setVirtual],
+    [store, setVirtual, setViewed],
   )
 
   const resetData = useCallback(async () => {
@@ -435,11 +452,13 @@ export function BudgetProvider({ children, repository, migrateLegacy = true }: {
     () =>
       virtualActive ??
       (data
-        ? (data.budgetMonths.find(
+        ? (data.budgetMonths.find((budget) => budget.id === viewedId) ??
+          data.budgetMonths.find(
             (budget) => budget.id === data.settings.activeBudgetMonthId,
-          ) ?? data.budgetMonths[0])
+          ) ??
+          data.budgetMonths[0])
         : undefined),
-    [data, virtualActive],
+    [data, virtualActive, viewedId],
   )
 
   const savedMonthKeys = useMemo(

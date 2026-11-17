@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  Pencil,
   RotateCcw,
 } from 'lucide-react'
 import { useBudget } from '@/app/budget-context'
@@ -22,11 +23,39 @@ import {
 } from '@/components/ui/popover'
 import {
   getMonthName,
+  isBudgetMonthInRange,
   monthKey,
   nextMonth,
   previousMonth,
 } from '@/domain/budget/factory'
 import { MonthCalendar } from './MonthCalendar'
+import { RenameMonthDialog } from './RenameMonthDialog'
+
+function readCurrentMonthKey(): string {
+  const today = new Date()
+  return monthKey(today.getFullYear(), today.getMonth() + 1)
+}
+
+/**
+ * Key of today's calendar month. Refreshed when the tab regains focus and
+ * every minute, so "This month" stays right if the app is left open across a
+ * month change.
+ */
+function useCurrentMonthKey(): string {
+  const [key, setKey] = useState(readCurrentMonthKey)
+  useEffect(() => {
+    const refresh = () => setKey(readCurrentMonthKey())
+    const timer = window.setInterval(refresh, 60_000)
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [])
+  return key
+}
 
 interface MonthToolbarProps {
   /** Called when the user picks a month; the route writes it to `?m=`. */
@@ -45,17 +74,18 @@ export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
     activeBudgetIsVirtual,
     savedMonthKeys,
     resetActiveBudget,
+    updateActiveBudget,
   } = useBudget()
   const [open, setOpen] = useState(false)
+  const [renaming, setRenaming] = useState(false)
   const [viewYear, setViewYear] = useState(activeBudget.year)
-  const [currentKey] = useState(() => {
-    const today = new Date()
-    return monthKey(today.getFullYear(), today.getMonth() + 1)
-  })
+  const currentKey = useCurrentMonthKey()
 
   const { year, month } = activeBudget
   const selectedKey = monthKey(year, month)
 
+  const previous = previousMonth(year, month)
+  const next = nextMonth(year, month)
   const step = (target: { year: number; month: number }) =>
     onSelectMonth(target.year, target.month)
 
@@ -83,7 +113,8 @@ export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
         variant="outline"
         className="size-11"
         aria-label="Previous month"
-        onClick={() => step(previousMonth(year, month))}
+        disabled={!isBudgetMonthInRange(previous.year, previous.month)}
+        onClick={() => step(previous)}
       >
         <ChevronLeft aria-hidden="true" />
       </Button>
@@ -123,7 +154,8 @@ export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
         variant="outline"
         className="size-11"
         aria-label="Next month"
-        onClick={() => step(nextMonth(year, month))}
+        disabled={!isBudgetMonthInRange(next.year, next.month)}
+        onClick={() => step(next)}
       >
         <ChevronRight aria-hidden="true" />
       </Button>
@@ -143,6 +175,13 @@ export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuItem
+            className="min-h-11"
+            onClick={() => setRenaming(true)}
+          >
+            <Pencil aria-hidden="true" />
+            Rename month
+          </DropdownMenuItem>
+          <DropdownMenuItem
             variant="destructive"
             className="min-h-11"
             disabled={activeBudgetIsVirtual}
@@ -153,6 +192,17 @@ export function MonthToolbar({ onSelectMonth }: MonthToolbarProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <RenameMonthDialog
+        open={renaming}
+        onOpenChange={setRenaming}
+        name={activeBudget.name}
+        onRename={(name) =>
+          updateActiveBudget((budget) => {
+            budget.name = name
+          })
+        }
+      />
     </div>
   )
 }

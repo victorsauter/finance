@@ -125,7 +125,7 @@ describe('budget route and the `m` search param', () => {
     ).toHaveAttribute('data-saved', 'true')
   })
 
-  it('offers only "Reset month" in the actions menu', async () => {
+  it('offers rename and reset in the actions menu', async () => {
     const user = userEvent.setup()
     openApp('/?m=2030-08')
     await screen.findByRole('heading', { level: 1, name: 'August 2030' })
@@ -133,6 +133,38 @@ describe('budget route and the `m` search param', () => {
     await user.click(screen.getByRole('button', { name: 'Budget actions' }))
 
     const items = await screen.findAllByRole('menuitem')
-    expect(items.map((item) => item.textContent)).toEqual(['Reset month'])
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Rename month',
+      'Reset month',
+    ])
+  })
+
+  it('renames the month and saves it', async () => {
+    const user = userEvent.setup()
+    openApp('/?m=2030-08')
+    await screen.findByRole('heading', { level: 1, name: 'August 2030' })
+
+    await user.click(screen.getByRole('button', { name: 'Budget actions' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Rename month' }))
+    const field = await screen.findByLabelText('Month name')
+    await user.clear(field)
+    await user.type(field, 'Holiday month')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Holiday month' }),
+    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.queryByText(/Not saved yet/)).not.toBeInTheDocument(),
+    )
+  })
+
+  it('ignores a month outside the supported years', async () => {
+    openApp('/?m=0001-05')
+
+    // The invalid param is dropped: a real month is shown, never year 1.
+    const heading = await screen.findByRole('heading', { level: 1 })
+    expect(heading).toHaveTextContent(String(new Date().getFullYear()))
+    expect(screen.queryByText(/Not saved yet/)).not.toBeInTheDocument()
   })
 })

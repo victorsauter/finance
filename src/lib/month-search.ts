@@ -4,7 +4,9 @@ export interface MonthSearch {
   m?: string
 }
 
-const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
+import { MAX_BUDGET_YEAR, MIN_BUDGET_YEAR } from '@/domain/budget/models'
+
+const MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/
 
 /**
  * TanStack Router `validateSearch` for `?m=YYYY-MM`. Anything that is not a
@@ -15,5 +17,9 @@ export function validateMonthSearch(
   search: Record<string, unknown>,
 ): MonthSearch {
   const { m } = search
-  return typeof m === 'string' && MONTH_PATTERN.test(m) ? { m } : {}
+  if (typeof m !== 'string') return {}
+  const match = MONTH_PATTERN.exec(m)
+  if (!match) return {}
+  const year = Number(match[1])
+  return year >= MIN_BUDGET_YEAR && year <= MAX_BUDGET_YEAR ? { m } : {}
 }
