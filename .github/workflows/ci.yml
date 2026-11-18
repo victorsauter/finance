@@ -1,9 +1,12 @@
 name: Validate Finance
 
 on:
+  # The native iPhone app in ios/ has its own checks.
   pull_request:
+    paths-ignore: ['ios/**']
   push:
     branches: [main]
+    paths-ignore: ['ios/**']
 
 permissions:
   contents: read
