@@ -1,5 +1,9 @@
 export const CURRENT_SCHEMA_VERSION = 2 as const
 
+/** Years a budget month may use; the stored schema rejects anything else. */
+export const MIN_BUDGET_YEAR = 2000
+export const MAX_BUDGET_YEAR = 2200
+
 export type EntityId = string
 
 export interface Income {

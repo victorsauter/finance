@@ -1,55 +1,12 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { commit, expectSaved, fakeCloud, signIn } from './support'
 
-// Isolated fake Auth/Data API: these tests never send email or personal budgets
-// to the production project. PostgreSQL/RLS is tested separately in supabase/tests.
-async function fakeCloud(page: Page) {
-  let document: unknown = null
-  let revision = 0
-  let writes = 0
-  const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', email: 'pilot@example.invalid',
-    aud: 'authenticated', role: 'authenticated', created_at: new Date().toISOString(),
-    app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {}, identities: [] }
-  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url')
-  const token = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ sub: user.id,
-    aud: user.aud, exp: Math.floor(Date.now() / 1000) + 3600, role: user.role })}.test-signature`
-  await page.route('https://*.supabase.co/**', async (route) => {
-    const url = new URL(route.request().url())
-    const respond = (body: unknown, status = 200) => route.fulfill({ status,
-      contentType: 'application/json', body: JSON.stringify(body) })
-    if (url.pathname === '/auth/v1/otp' || url.pathname === '/auth/v1/logout') return respond({})
-    if (url.pathname === '/auth/v1/verify') return respond({ access_token: token,
-      refresh_token: 'test-refresh-token', token_type: 'bearer', expires_in: 3600, user })
-    if (url.pathname === '/auth/v1/user') return respond(user)
-    if (url.pathname === '/rest/v1/finance_documents') return respond(document
-      ? [{ data: document, revision }] : [])
-    if (url.pathname === '/rest/v1/rpc/save_finance_document') {
-      const input = route.request().postDataJSON()
-      if (input.expected_revision !== revision) return respond({ status: 'conflict', revision })
-      document = input.document
-      writes += 1
-      revision += 1
-      return respond({ status: 'saved', revision })
-    }
-    return respond({ message: `Unexpected test request: ${url.pathname}` }, 500)
-  })
-  return { getWrites: () => writes }
-}
-
-async function signIn(page: Page) {
-  await page.goto('/account')
-  await page.getByLabel('Email address').fill('pilot@example.invalid')
-  await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
-  await page.getByLabel('Email code').fill('123456')
-  await page.getByRole('button', { name: 'Verify code' }).click()
-  await expect(page.getByRole('heading', { name: 'pilot@example.invalid' })).toBeVisible()
-}
 
 test('sign-in preserves guest data, requires import consent and isolates sign-out', async ({ page }) => {
   const server = await fakeCloud(page)
   await page.goto('/')
-  await page.getByLabel('Amount for Main income').fill('2468.12')
-  await page.getByLabel('Amount for Main income').press('Tab')
-  await expect(page.locator('.save-status:visible')).toHaveClass(/save-saved/)
+  await commit(page.getByLabel('Amount for Main income'), '2468.12')
+  await expectSaved(page)
 
   await signIn(page)
   await expect(page.getByRole('button', { name: 'Import guest budgets and enable sync' })).toBeVisible()
@@ -57,25 +14,24 @@ test('sign-in preserves guest data, requires import consent and isolates sign-ou
   expect(server.getWrites()).toBe(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
   await page.getByRole('button', { name: 'Import guest budgets and enable sync' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click()
-  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel' }).click()
+  await expect(page.getByRole('alertdialog')).toHaveCount(0)
   expect(server.getWrites()).toBe(0)
 
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Import guest budgets and enable sync' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Upload and enable sync' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Upload and enable sync' }).click()
   expect((await download).suggestedFilename()).toBe('finance-before-cloud-import.json')
   await expect(page.getByText('Sync status: synced.', { exact: true })).toBeVisible()
   expect(server.getWrites()).toBe(1)
   await page.goto('/')
   await expect(page.getByLabel('Amount for Main income')).toHaveValue('2468.12')
-  await page.getByLabel('Amount for Main income').fill('3000')
-  await page.getByLabel('Amount for Main income').press('Tab')
+  await commit(page.getByLabel('Amount for Main income'), '3000')
   await expect.poll(server.getWrites).toBe(2)
 
   await page.goto('/account')
   await page.getByRole('button', { name: 'Sign out on this device' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Sign out' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Sign out' }).click()
   await expect(page.getByRole('heading', { name: 'Sign in or create an account' })).toBeVisible()
   await page.goto('/')
   await expect(page.getByLabel('Amount for Main income')).toHaveValue('2468.12')

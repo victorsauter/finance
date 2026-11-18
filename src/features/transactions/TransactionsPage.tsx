@@ -1,37 +1,72 @@
-import { useMemo, useState } from 'react'
-import { Download, Trash2 } from 'lucide-react'
-import { useBudget } from '../../app/budget-context'
-import { useConfirm } from '../../components/ui/confirm-context'
-import type {
-  ImportedTransaction,
-  ImportedTransactionKind,
-} from '../../domain/budget/models'
-import { formatMoney } from '../../domain/budget/money'
-import {
-  formatMonthKey,
-  formatTransactionAmount,
-  formatTransactionDate,
-} from '../../domain/transactions/format'
+import { useCallback, useMemo } from 'react'
+import { Link } from '@tanstack/react-router'
+import { DownloadIcon } from 'lucide-react'
+import { useBudget } from '@/app/budget-context'
+import { Page } from '@/components/layout/Page'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { Section } from '@/components/layout/Section'
+import { buttonVariants } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { useConfirm } from '@/components/ui/confirm-context'
+import { NativeSelect } from '@/components/ui/native-select'
+import { findBudget, monthKey } from '@/domain/budget/factory'
+import type { ImportedTransaction } from '@/domain/budget/models'
+import { formatMoney } from '@/domain/budget/money'
+import { formatMonthKey } from '@/domain/transactions/format'
+import { cn } from '@/lib/utils'
+import { listMonthKeys, summarizeMonth } from './month-summary'
+import { Notice } from '@/components/ui/notice'
 import { RevolutCsvImporter } from './RevolutCsvImporter'
+import { TransactionsTable } from './TransactionsTable'
 
-const kindLabels: Record<ImportedTransactionKind, string> = {
-  expense: 'Expense',
-  income: 'Income',
-  transfer: 'Transfer',
+interface TransactionsPageProps {
+  /** Month from the `m` search param (`YYYY-MM`); absent means the active month. */
+  month?: string
+  onMonthChange: (month: string) => void
 }
 
-function budgetMonthKey(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, '0')}`
+interface SummaryTileProps {
+  label: string
+  value: string
+  hint: string
+  tone?: 'default' | 'negative' | 'attention'
 }
 
-function transactionSort(left: ImportedTransaction, right: ImportedTransaction) {
+function SummaryTile({ label, value, hint, tone = 'default' }: SummaryTileProps) {
   return (
-    right.bookingDate.localeCompare(left.bookingDate) ||
-    left.description.localeCompare(right.description, 'en')
+    <Card
+      size="sm"
+      role="article"
+      aria-label={label}
+      className={cn(
+        'shadow-card',
+        tone === 'negative' && 'ring-destructive/40',
+        tone === 'attention' && 'ring-warning/50',
+      )}
+    >
+      <CardContent className="flex min-w-0 flex-col gap-1">
+        <span className="text-xs font-medium text-muted-foreground">
+          {label}
+        </span>
+        <strong
+          className={cn(
+            'font-heading text-xl font-semibold tabular-nums',
+            tone === 'negative' && 'text-destructive',
+            tone === 'attention' && 'text-warning',
+          )}
+        >
+          {value}
+        </strong>
+        <small className="text-xs text-muted-foreground">{hint}</small>
+      </CardContent>
+    </Card>
   )
 }
 
-export function TransactionsPage() {
+export function TransactionsPage({
+  month,
+  onMonthChange,
+}: TransactionsPageProps) {
   const {
     data,
     activeBudget,
@@ -40,322 +75,181 @@ export function TransactionsPage() {
     deleteTransaction,
   } = useBudget()
   const confirm = useConfirm()
-  const [selectedMonth, setSelectedMonth] = useState(() =>
-    budgetMonthKey(activeBudget.year, activeBudget.month),
-  )
 
-  const months = useMemo(() => {
-    const keys = new Set(
-      data.budgetMonths.map((budget) =>
-        budgetMonthKey(budget.year, budget.month),
+  const selectedMonth = month ?? monthKey(activeBudget.year, activeBudget.month)
+  const [selectedYear, selectedMonthNumber] = selectedMonth
+    .split('-')
+    .map(Number) as [number, number]
+
+  const months = useMemo(
+    () =>
+      listMonthKeys(
+        data.budgetMonths.map((budget) =>
+          monthKey(budget.year, budget.month),
+        ),
+        data.importedTransactions,
+        selectedMonth,
       ),
-    )
-    data.importedTransactions.forEach((transaction) =>
-      keys.add(transaction.bookingDate.slice(0, 7)),
-    )
-    return [...keys].sort().reverse()
-  }, [data.budgetMonths, data.importedTransactions])
-
-  const budget = data.budgetMonths.find(
-    (candidate) =>
-      budgetMonthKey(candidate.year, candidate.month) === selectedMonth,
+    [data.budgetMonths, data.importedTransactions, selectedMonth],
   )
+
+  const budget = findBudget(data, selectedYear, selectedMonthNumber)
   const transactions = useMemo(
     () =>
-      data.importedTransactions
-        .filter((transaction) =>
-          transaction.bookingDate.startsWith(selectedMonth),
-        )
-        .sort(transactionSort),
+      data.importedTransactions.filter((transaction) =>
+        transaction.bookingDate.startsWith(selectedMonth),
+      ),
     [data.importedTransactions, selectedMonth],
   )
+  const summary = summarizeMonth(transactions, budget)
+  const monthLabel = formatMonthKey(selectedMonth)
 
-  const euroTransactions = transactions.filter(
-    (transaction) => transaction.currency === 'EUR',
+  const removeTransaction = useCallback(
+    (transaction: ImportedTransaction) => {
+      void (async () => {
+        const confirmed = await confirm({
+          title: 'Delete this transaction?',
+          message: `“${transaction.description}” from ${transaction.bookingDate} will be removed.`,
+          confirmLabel: 'Delete',
+          tone: 'danger',
+        })
+        if (confirmed) deleteTransaction(transaction.id)
+      })()
+    },
+    [confirm, deleteTransaction],
   )
-  const actualExpenseCents = euroTransactions.reduce(
-    (total, transaction) =>
-      total +
-      transaction.feeCents +
-      (transaction.kind === 'expense' && transaction.amountCents < 0
-        ? -transaction.amountCents
-        : 0),
-    0,
-  )
-  const actualIncomeCents = euroTransactions.reduce(
-    (total, transaction) =>
-      transaction.kind === 'income' && transaction.amountCents > 0
-        ? total + transaction.amountCents
-        : total,
-    0,
-  )
-  const plannedExpenseCents =
-    budget?.expenseCategories.reduce(
-      (categoryTotal, category) =>
-        categoryTotal +
-        category.items.reduce(
-          (itemTotal, item) => itemTotal + item.amountCents,
-          0,
-        ),
-      0,
-    ) ?? 0
-  const unclassifiedCount = transactions.filter(
-    (transaction) =>
-      transaction.kind === 'expense' && transaction.categoryId === null,
-  ).length
-  const nonEuroCount = transactions.length - euroTransactions.length
-
-  const removeTransaction = async (transaction: ImportedTransaction) => {
-    const confirmed = await confirm({
-      title: 'Delete this transaction?',
-      message: `“${transaction.description}” from ${transaction.bookingDate} will be removed.`,
-      confirmLabel: 'Delete',
-      tone: 'danger',
-    })
-    if (confirmed) deleteTransaction(transaction.id)
-  }
 
   return (
-    <main className="content-page transactions-page">
-      <div className="transactions-intro">
-        <div className="page-intro">
-          <p className="eyebrow">Actual expenses</p>
-          <h1>Revolut transactions</h1>
-          <p>
-            Import a CSV statement, review the new rows, then assign expenses
-            to categories in the matching budget.
-          </p>
-        </div>
-        <label className="month-filter">
-          <span>Displayed month</span>
-          <select
-            aria-label="Transaction month"
-            value={selectedMonth}
-            onChange={(event) => setSelectedMonth(event.target.value)}
-          >
-            {months.map((month) => (
-              <option key={month} value={month}>
-                {formatMonthKey(month)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <Page>
+      <PageHeader
+        eyebrow="Actual expenses"
+        title="Revolut transactions"
+        description="Import a CSV statement, review the new rows, then assign expenses to categories in the matching budget."
+        actions={
+          <label className="flex w-full flex-col gap-1 text-xs font-medium text-muted-foreground sm:w-56">
+            Displayed month
+            <NativeSelect
+              aria-label="Transaction month"
+              className="md:h-9"
+              value={selectedMonth}
+              onChange={(event) => onMonthChange(event.target.value)}
+            >
+              {months.map((key) => (
+                <option key={key} value={key}>
+                  {formatMonthKey(key)}
+                </option>
+              ))}
+            </NativeSelect>
+          </label>
+        }
+      />
 
-      <RevolutCsvImporter onImported={setSelectedMonth} />
+      <RevolutCsvImporter onImported={onMonthChange} />
 
       <section
-        className="transaction-summary-grid"
-        aria-label={`Transaction summary for ${formatMonthKey(selectedMonth)}`}
+        aria-label={`Transaction summary for ${monthLabel}`}
+        className="@container"
       >
-        <article>
-          <span>Actual expenses</span>
-          <strong>{formatMoney(actualExpenseCents)}</strong>
-          <small>EUR transactions classified as expenses, including fees</small>
-        </article>
-        <article>
-          <span>Planned budget</span>
-          <strong>{formatMoney(plannedExpenseCents)}</strong>
-          <small>
-            {budget ? budget.name : 'No budget for this month'}
-          </small>
-        </article>
-        <article
-          className={
-            actualExpenseCents > plannedExpenseCents ? 'is-negative' : ''
-          }
-        >
-          <span>Available difference</span>
-          <strong>{formatMoney(plannedExpenseCents - actualExpenseCents)}</strong>
-          <small>Planned minus actual expenses</small>
-        </article>
-        <article className={unclassifiedCount > 0 ? 'needs-attention' : ''}>
-          <span>To classify</span>
-          <strong>{unclassifiedCount}</strong>
-          <small>
-            {actualIncomeCents > 0
-              ? `${formatMoney(actualIncomeCents)} of EUR income`
-              : 'No EUR income'}
-          </small>
-        </article>
+        <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-4">
+          <SummaryTile
+            label="Actual expenses"
+            value={formatMoney(summary.actualExpenseCents)}
+            hint="EUR transactions classified as expenses, including fees"
+          />
+          <SummaryTile
+            label="Planned budget"
+            value={formatMoney(summary.plannedExpenseCents)}
+            hint={budget ? budget.name : 'No budget for this month'}
+          />
+          <SummaryTile
+            label="Available difference"
+            value={formatMoney(
+              summary.plannedExpenseCents - summary.actualExpenseCents,
+            )}
+            hint="Planned minus actual expenses"
+            tone={
+              summary.actualExpenseCents > summary.plannedExpenseCents
+                ? 'negative'
+                : 'default'
+            }
+          />
+          <SummaryTile
+            label="To classify"
+            value={String(summary.unclassifiedCount)}
+            hint={
+              summary.actualIncomeCents > 0
+                ? `${formatMoney(summary.actualIncomeCents)} of EUR income`
+                : 'No EUR income'
+            }
+            tone={summary.unclassifiedCount > 0 ? 'attention' : 'default'}
+          />
+        </div>
       </section>
 
-      {nonEuroCount > 0 && (
-        <div className="warning-panel transaction-warning">
-          <div className="warning-icon" aria-hidden="true">
-            !
-          </div>
-          <div>
-            <h2>Multiple currencies</h2>
-            <p>
-              {nonEuroCount} {nonEuroCount === 1 ? 'transaction is' : 'transactions are'}{' '}
-              excluded from EUR totals. The original amount remains visible below.
-            </p>
-          </div>
-        </div>
+      {summary.nonEuroCount > 0 && (
+        <Notice tone="warning" title="Multiple currencies">
+          {summary.nonEuroCount}{' '}
+          {summary.nonEuroCount === 1
+            ? 'transaction is'
+            : 'transactions are'}{' '}
+          excluded from EUR totals. The original amount remains visible below.
+        </Notice>
       )}
 
       {!budget && transactions.length > 0 && (
-        <div className="warning-panel transaction-warning">
-          <div className="warning-icon" aria-hidden="true">
-            !
-          </div>
-          <div>
-            <h2>No budget for {formatMonthKey(selectedMonth)}</h2>
-            <p>
-              Transactions are retained, but their categories can only be
-              assigned after you create this month on the Budget screen.
-            </p>
-          </div>
-        </div>
+        <Notice
+          tone="warning"
+          title={`No budget for ${monthLabel}`}
+          action={
+            <Link
+              to="/"
+              search={{ m: selectedMonth }}
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'h-11 md:h-9',
+              )}
+            >
+              Open this month
+            </Link>
+          }
+        >
+          Transactions are retained, but their categories can only be assigned
+          once this month has a budget.
+        </Notice>
       )}
 
-      <section className="transactions-card" aria-labelledby="transactions-title">
-        <div className="transactions-card-heading">
-          <div>
-            <p className="eyebrow">Imported history</p>
-            <h2 id="transactions-title">
-              {formatMonthKey(selectedMonth)}
-            </h2>
-          </div>
-          <span>
-            {transactions.length}{' '}
-            {transactions.length === 1 ? 'transaction' : 'transactions'}
-          </span>
-        </div>
-
+      <Section
+        title={monthLabel}
+        description={`${transactions.length} ${
+          transactions.length === 1 ? 'transaction' : 'transactions'
+        } imported`}
+      >
         {transactions.length === 0 ? (
-          <div className="transaction-empty">
-            <div aria-hidden="true">
-              <Download size={23} />
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <div
+              aria-hidden="true"
+              className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground"
+            >
+              <DownloadIcon className="size-5" />
             </div>
-            <h3>No transactions for this month</h3>
-            <p>
+            <h3 className="font-heading font-semibold">
+              No transactions for this month
+            </h3>
+            <p className="max-w-prose text-sm text-muted-foreground">
               Choose a Revolut CSV export. Previously imported files can be
               selected again without creating duplicates.
             </p>
           </div>
         ) : (
-          <div className="table-scroll transactions-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date and description</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Amount</th>
-                  <th>
-                    <span className="visually-hidden">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.map((transaction) => {
-                  const canCategorize =
-                    transaction.kind === 'expense' &&
-                    Boolean(budget?.expenseCategories.length)
-                  return (
-                    <tr key={transaction.id}>
-                      <td data-label="Transaction">
-                        <div className="transaction-description">
-                          <time dateTime={transaction.bookingDate}>
-                            {formatTransactionDate(transaction.bookingDate)}
-                          </time>
-                          <div>
-                            <strong>{transaction.description}</strong>
-                            <span>
-                              {transaction.transactionType ?? 'Unknown type'}
-                              {transaction.feeCents > 0
-                                ? ` · fee ${formatTransactionAmount(
-                                    transaction.feeCents,
-                                    transaction.currency,
-                                  )}`
-                                : ''}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td data-label="Type">
-                        <select
-                          aria-label={`Type for ${transaction.description}`}
-                          value={transaction.kind}
-                          onChange={(event) =>
-                            setTransactionKind(
-                              transaction.id,
-                              event.target.value as ImportedTransactionKind,
-                            )
-                          }
-                        >
-                          {(Object.keys(kindLabels) as ImportedTransactionKind[]).map(
-                            (kind) => (
-                              <option key={kind} value={kind}>
-                                {kindLabels[kind]}
-                              </option>
-                            ),
-                          )}
-                        </select>
-                      </td>
-                      <td data-label="Category">
-                        <select
-                          aria-label={`Category for ${transaction.description}`}
-                          value={
-                            canCategorize
-                              ? (transaction.categoryId ?? '')
-                              : ''
-                          }
-                          disabled={!canCategorize}
-                          onChange={(event) =>
-                            setTransactionCategory(
-                              transaction.id,
-                              event.target.value || null,
-                            )
-                          }
-                        >
-                          <option value="">
-                            {transaction.kind !== 'expense'
-                              ? 'Not applicable'
-                              : budget
-                                ? 'To classify'
-                                : 'No budget'}
-                          </option>
-                          {budget?.expenseCategories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td
-                        data-label="Amount"
-                        className={
-                          transaction.amountCents < 0
-                            ? 'transaction-debit'
-                            : 'transaction-credit'
-                        }
-                      >
-                        {formatTransactionAmount(
-                          transaction.amountCents,
-                          transaction.currency,
-                        )}
-                      </td>
-                      <td className="transaction-actions-cell">
-                        <button
-                          type="button"
-                          className="transaction-delete"
-                          aria-label={`Delete ${transaction.description}`}
-                          onClick={() => void removeTransaction(transaction)}
-                        >
-                          <Trash2 aria-hidden="true" size={17} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <TransactionsTable
+            transactions={transactions}
+            budget={budget}
+            onCategoryChange={setTransactionCategory}
+            onKindChange={setTransactionKind}
+            onDelete={removeTransaction}
+          />
         )}
-      </section>
-    </main>
+      </Section>
+    </Page>
   )
 }

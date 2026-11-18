@@ -1,14 +1,19 @@
 import { useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { FileUp, RotateCcw, X } from 'lucide-react'
-import { useBudget } from '../../app/budget-context'
-import type { ImportedTransaction } from '../../domain/budget/models'
-import { formatTransactionAmount } from '../../domain/transactions/format'
+import { useBudget } from '@/app/budget-context'
+import { Section } from '@/components/layout/Section'
+import { Button } from '@/components/ui/button'
+import type { ImportedTransaction } from '@/domain/budget/models'
+import { formatTransactionAmount } from '@/domain/transactions/format'
 import {
   parseRevolutCsv,
   type RevolutCsvIssueReason,
   type RevolutCsvResult,
-} from '../../domain/transactions/revolut-csv'
+} from '@/domain/transactions/revolut-csv'
+import { Notice } from '@/components/ui/notice'
 
+const PREVIEW_ROW_LIMIT = 8
+const ISSUE_LIMIT = 20
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
 interface ImportPreview {
@@ -22,6 +27,12 @@ interface LastImport {
   batchId: string
   count: number
 }
+
+const kindLabels = {
+  expense: 'Expense',
+  income: 'Income',
+  transfer: 'Transfer',
+} as const
 
 function plural(count: number, singular: string, pluralForm = `${singular}s`) {
   return count === 1 ? singular : pluralForm
@@ -123,178 +134,181 @@ export function RevolutCsvImporter({
   }
 
   return (
-    <section className="import-card" aria-labelledby="revolut-import-title">
-      <div className="import-heading">
-        <div>
-          <p className="eyebrow">Local import</p>
-          <h2 id="revolut-import-title">Add a Revolut statement</h2>
-          <p>
-            The file is analysed only in this browser. Only completed
-            transactions are offered, and duplicates are ignored.
-          </p>
-        </div>
-        <input
-          ref={inputRef}
-          className="visually-hidden"
-          type="file"
-          accept=".csv,text/csv,text/plain"
-          aria-label="Revolut CSV file"
-          onChange={(event) => void selectFile(event)}
-        />
-        <button
-          type="button"
-          className="primary-button"
-          onClick={() => inputRef.current?.click()}
-        >
-          <FileUp aria-hidden="true" size={17} />
-          Choose a CSV
-        </button>
-      </div>
+    <Section
+      title="Add a Revolut statement"
+      description="The file is analysed only in this browser. Only completed transactions are offered, and duplicates are ignored."
+      contentClassName="space-y-4"
+    >
+      <input
+        ref={inputRef}
+        className="sr-only"
+        type="file"
+        accept=".csv,text/csv,text/plain"
+        aria-label="Revolut CSV file"
+        tabIndex={-1}
+        onChange={(event) => void selectFile(event)}
+      />
+      <Button
+        type="button"
+        className="h-11 w-full sm:w-auto md:h-9"
+        onClick={() => inputRef.current?.click()}
+      >
+        <FileUp aria-hidden="true" />
+        Choose a CSV
+      </Button>
 
       {message && (
-        <div
-          className={`notice ${
-            isError ? 'notice-error' : 'notice-success'
-          } import-notice`}
+        <Notice
+          tone={isError ? 'error' : 'success'}
           role={isError ? 'alert' : 'status'}
+          action={
+            lastImport &&
+            !isError && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-11 md:h-9"
+                onClick={undoLastImport}
+              >
+                <RotateCcw aria-hidden="true" />
+                Undo this import
+              </Button>
+            )
+          }
         >
-          <span>{message}</span>
-          {lastImport && !isError && (
-            <button
-              type="button"
-              className="text-button"
-              onClick={undoLastImport}
-            >
-              <RotateCcw aria-hidden="true" size={15} />
-              Undo this import
-            </button>
-          )}
-        </div>
+          {message}
+        </Notice>
       )}
 
       {preview && (
-        <div className="import-preview">
-          <div className="import-preview-heading">
-            <div>
-              <strong>{preview.fileName}</strong>
-              <span>{preview.result.rowCount} rows read</span>
+        <div className="space-y-4 rounded-lg border bg-muted/40 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium break-words">{preview.fileName}</p>
+              <p className="text-xs text-muted-foreground">
+                {preview.result.rowCount} rows read
+              </p>
             </div>
-            <button
+            <Button
               type="button"
-              className="text-button"
+              variant="ghost"
+              className="h-11 shrink-0 md:h-9"
               onClick={() => setPreview(null)}
             >
-              <X aria-hidden="true" size={15} />
+              <X aria-hidden="true" />
               Close
-            </button>
+            </Button>
           </div>
 
-          <div className="import-stats" aria-label="Import summary">
-            <div>
-              <strong>{preview.newTransactions.length}</strong>
-              <span>New</span>
-            </div>
-            <div>
-              <strong>
-                {preview.existingDuplicateCount + issueCounts.duplicate}
-              </strong>
-              <span>Duplicates</span>
-            </div>
-            <div>
-              <strong>{issueCounts.pending}</strong>
-              <span>Pending</span>
-            </div>
-            <div>
-              <strong>{issueCounts.invalid + issueCounts.rejected}</strong>
-              <span>Excluded</span>
-            </div>
+          <div
+            role="group"
+            aria-label="Import summary"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+          >
+            {[
+              ['New', preview.newTransactions.length],
+              [
+                'Duplicates',
+                preview.existingDuplicateCount + issueCounts.duplicate,
+              ],
+              ['Pending', issueCounts.pending],
+              ['Excluded', issueCounts.invalid + issueCounts.rejected],
+            ].map(([label, count]) => (
+              <div
+                key={label}
+                className="rounded-lg bg-card px-3 py-2 ring-1 ring-foreground/10"
+              >
+                <strong className="block text-lg font-semibold tabular-nums">
+                  {count}
+                </strong>
+                <span className="text-xs text-muted-foreground">{label}</span>
+              </div>
+            ))}
           </div>
 
           {preview.newTransactions.length > 0 && (
-            <div className="table-scroll import-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Detected type</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview.newTransactions
-                    .slice(0, 8)
-                    .map((transaction) => (
-                      <tr key={transaction.sourceKey}>
-                        <td data-label="Date">{transaction.bookingDate}</td>
-                        <td data-label="Description">{transaction.description}</td>
-                        <td data-label="Type">
-                          {
-                            {
-                              expense: 'Expense',
-                              income: 'Income',
-                              transfer: 'Transfer',
-                            }[transaction.kind]
-                          }
-                        </td>
-                        <td data-label="Amount">
-                          {formatTransactionAmount(
-                            transaction.amountCents,
-                            transaction.currency,
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-              {preview.newTransactions.length > 8 && (
-                <p className="import-more">
-                  + {preview.newTransactions.length - 8} more transactions
+            <div>
+              <ul
+                aria-label="Transactions to import"
+                className="divide-y rounded-lg bg-card ring-1 ring-foreground/10"
+              >
+                {preview.newTransactions
+                  .slice(0, PREVIEW_ROW_LIMIT)
+                  .map((transaction) => (
+                    <li
+                      key={transaction.sourceKey}
+                      className="flex items-start justify-between gap-3 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium break-words">
+                          {transaction.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {transaction.bookingDate} ·{' '}
+                          {kindLabels[transaction.kind]}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm font-medium tabular-nums">
+                        {formatTransactionAmount(
+                          transaction.amountCents,
+                          transaction.currency,
+                        )}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+              {preview.newTransactions.length > PREVIEW_ROW_LIMIT && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  + {preview.newTransactions.length - PREVIEW_ROW_LIMIT} more
+                  transactions
                 </p>
               )}
             </div>
           )}
 
           {preview.result.issues.length > 0 && (
-            <details className="import-issues">
-              <summary>
-                Show the {preview.result.issues.length} rows that cannot be imported
+            <details className="text-sm">
+              <summary className="cursor-pointer font-medium">
+                Show the {preview.result.issues.length} rows that cannot be
+                imported
               </summary>
-              <ul>
-                {preview.result.issues.slice(0, 20).map((issue, index) => (
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                {preview.result.issues.slice(0, ISSUE_LIMIT).map((issue, index) => (
                   <li key={`${issue.line}-${issue.reason}-${index}`}>
                     Row {issue.line}: {issue.message}
                   </li>
                 ))}
               </ul>
-              {preview.result.issues.length > 20 && (
-                <p>
-                  {preview.result.issues.length - 20} more rows are not shown.
+              {preview.result.issues.length > ISSUE_LIMIT && (
+                <p className="mt-2 text-muted-foreground">
+                  {preview.result.issues.length - ISSUE_LIMIT} more rows are
+                  not shown.
                 </p>
               )}
             </details>
           )}
 
-          <div className="import-actions">
-            <button
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
               type="button"
-              className="secondary-button"
+              variant="outline"
+              className="h-11 md:h-9"
               onClick={() => setPreview(null)}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="primary-button"
+              className="h-11 md:h-9"
               disabled={preview.newTransactions.length === 0}
               onClick={confirmImport}
             >
               Import {preview.newTransactions.length}{' '}
               {plural(preview.newTransactions.length, 'transaction')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </section>
+    </Section>
   )
 }
