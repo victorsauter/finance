@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "mcp:start": "node --import ./tools/mcp/src/register.ts tools/mcp/src/cli.ts start",
+    "mcp:login": "node --import ./tools/mcp/src/register.ts tools/mcp/src/cli.ts login",
+    "mcp:logout": "node --import ./tools/mcp/src/register.ts tools/mcp/src/cli.ts logout",
+    "mcp:status": "node --import ./tools/mcp/src/register.ts tools/mcp/src/cli.ts status"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -35,6 +39,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@playwright/test": "^1.63.0",
     "@tanstack/router-plugin": "^1.169.0",
     "@testing-library/dom": "^10.4.2",

@@ -76,7 +76,8 @@ export class RevolutCsvError extends Error {
   }
 }
 
-function normalizeText(value: string): string {
+/** Lower-case, accent-free, punctuation-free form used to compare bank text. */
+export function normalizeText(value: string): string {
   return value
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
