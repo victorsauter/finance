@@ -15,8 +15,11 @@ de l'épargne et des investissements dans le temps.
 
 - Déjà en place : budget mensuel, planning, import Revolut, synchro Supabase et
   mode hors ligne, un document de données par compte.
-- En cours : reconstruction de l'interface (Tailwind, shadcn/ui, calendrier
+- Fait : reconstruction de l'interface web (Tailwind, shadcn/ui, calendrier
   annuel), voir [ADR 0001](./adr/0001-ui-stack.md).
+- En cours : application iPhone native en SwiftUI, voir
+  [ADR 0003](./adr/0003-native-ios-client.md). Le web reste l'interface pour
+  l'ordinateur.
 - Ensuite : patrimoine et stockage, voir [ADR 0002](./adr/0002-wealth-tracking.md)
   (statut : proposé, rien n'est décidé).
 
@@ -24,7 +27,10 @@ de l'épargne et des investissements dans le temps.
 
 ```mermaid
 flowchart LR
-  P0["Phase 0 · Interface<br/>(en cours)"] --> P1["Phase 1 · Socle de données<br/>#10"]
+  P0["Phase 0 · Interface web<br/>(fait)"] --> P1["Phase 1 · Socle de données<br/>#10"]
+  P0 --> N["iPhone · Écrans SwiftUI<br/>(en cours)"]
+  N --> C["iPhone · Branchement<br/>Supabase"]
+  P1 --> C
   P1 --> P2["Phase 2 · Patrimoine<br/>#4 #5 #6 #7"]
   P1 --> P3["Phase 3 · Foyer<br/>#9"]
   P0 --> I["Imports banques<br/>#8"]
@@ -51,12 +57,15 @@ flowchart LR
 
 ## Technical roadmap (English)
 
-Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md) and
-[ADR 0002 (wealth tracking, Proposed)](./adr/0002-wealth-tracking.md).
+Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
+[ADR 0002 (wealth tracking, Proposed)](./adr/0002-wealth-tracking.md) and
+[ADR 0003 (native iPhone client)](./adr/0003-native-ios-client.md).
 
 | Phase | Item | Issue | Depends on |
 | --- | --- | --- | --- |
-| 0 | UI rebuild (Tailwind v4, shadcn/ui, TanStack Router, dnd-kit, TanStack Table), yearly month calendar | in progress on the UI branch | none |
+| 0 | UI rebuild (Tailwind v4, shadcn/ui, TanStack Router, dnd-kit, TanStack Table), yearly month calendar | done (#12) | none |
+| iOS | Native iPhone app: foundations and v1 screens on local data (ADR 0003) | in progress under `ios/` | none |
+| iOS | Connect the iPhone app to Supabase (sign-in, sync, offline) | not started | #10 |
 | 1 | Normalized data model and sync engine (ADR 0002) | [#10](https://github.com/victorsauter/finance/issues/10) | UI rebuild merged |
 | 2 | Net worth: accounts, valuations, evolution chart | [#4](https://github.com/victorsauter/finance/issues/4) | #10 (or a spike inside the current document) |
 | 2 | Investments tracking | [#5](https://github.com/victorsauter/finance/issues/5) | #4 |

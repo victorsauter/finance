@@ -3,6 +3,7 @@ name: Publish Finance container
 on:
   push:
     branches: [main]
+    paths-ignore: ['ios/**']
   workflow_dispatch:
 
 permissions:
