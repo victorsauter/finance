@@ -300,6 +300,13 @@ public actor SyncEngine {
                 // instead of being offered for overwrite.
                 let snapshot = try await remote.fetch()
                 guard self.userId == userId else { return }
+                // Same content already in the cloud (e.g. the app stopped
+                // between applying a download and recording it): no conflict.
+                if let snapshot,
+                   DocumentCoding.fingerprint(snapshot.data) == DocumentCoding.fingerprint(pending.document) {
+                    await link(to: snapshot, userId: userId)
+                    continue
+                }
                 state.conflictRevision = snapshot?.revision ?? revision
                 await persist()
                 await publish(.conflict(snapshot.map(CloudSummary.init)))

@@ -330,6 +330,17 @@ private func makeEngine(
         #expect(await cloud.revision == 3)
     }
 
+    @Test func identicalContentIsNotAConflict() async throws {
+        let (local, cloud, engine) = try await linked(try fixture())
+        let same = renamed(try fixture(), "Edited on both")
+        await cloud.set(same, revision: 2)
+        await local.edit { $0 = same }
+        await engine.sync()
+        #expect(await engine.status == .synced)
+        #expect(await engine.state.revision == 2)
+        #expect(await cloud.appliedSaves == 0)
+    }
+
     @Test func conflictKeepsTheCloud() async throws {
         let (local, cloud, engine) = try await linked(try fixture())
         let fromWeb = renamed(try fixture(), "Edited on the web")
