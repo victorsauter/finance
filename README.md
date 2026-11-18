@@ -63,6 +63,7 @@ project for production builds and leaves previews local-only.
 | `npm test` | Unit and integration tests |
 | `npm run test:watch` | Unit tests in watch mode |
 | `npm run test:e2e` | Chromium desktop and emulated iPhone browser tests |
+| `npm run mcp:login` / `mcp:start` | Local MCP server for Claude Code, see [`tools/mcp/README.md`](./tools/mcp/README.md) |
 
 Install the browser once before running end-to-end tests:
 
