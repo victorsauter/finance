@@ -3,6 +3,7 @@ import SwiftUI
 
 struct SummaryCard: View {
     let summary: BudgetSummary
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -18,7 +19,11 @@ struct SummaryCard: View {
                     .contentTransition(.numericText(value: Double(summary.remainingCents)))
             }
 
-            HStack(spacing: 10) {
+            // Side by side they clip at the accessibility text sizes: stack them.
+            let layout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 10))
+                : AnyLayout(HStackLayout(spacing: 10))
+            layout {
                 metric("Income", Money.format(summary.incomeCents))
                 metric("Planned", Money.format(summary.expenseCents))
                 metric("Saved", Money.percent(summary.savingsRate / 100))

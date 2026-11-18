@@ -16,6 +16,16 @@ struct TransactionsScreen: View {
 
         NavigationStack {
             List {
+                // A row, not an overlay, so it scrolls at large text sizes.
+                if all.isEmpty {
+                    emptyState
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else if shown.isEmpty {
+                    ContentUnavailableView.search(text: search)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
                 if !all.isEmpty && search.isEmpty {
                     summarySection(all)
                 }
@@ -33,13 +43,7 @@ struct TransactionsScreen: View {
                     }
                 }
             }
-            .overlay {
-                if all.isEmpty {
-                    emptyState
-                } else if shown.isEmpty {
-                    ContentUnavailableView.search(text: search)
-                }
-            }
+            .scrollEdgeEffectStyle(.hard, for: .top)
             .navigationTitle("Transactions")
             .navigationSubtitle(store.month.name)
             .toolbar { MonthToolbar(isPickingMonth: $isPickingMonth) }
@@ -57,9 +61,9 @@ struct TransactionsScreen: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("No transactions in \(store.month.name)", systemImage: "tray")
+            Label("No transactions", systemImage: "tray")
         } description: {
-            Text("Transactions come from Revolut CSV statements, which are imported on the web app. Import a backup from the Account tab to bring them here.")
+            Text("Nothing was imported for \(store.month.name). Transactions come from Revolut CSV statements, which are imported on the web app. Import a backup from the Account tab to bring them here.")
         }
     }
 

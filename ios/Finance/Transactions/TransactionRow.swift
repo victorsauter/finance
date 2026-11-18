@@ -23,12 +23,15 @@ struct TransactionRow: View {
 
         layout {
             HStack(spacing: 12) {
-                Image(systemName: transaction.kind.symbol)
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(transaction.kind.amountColor)
-                    .frame(width: 32, height: 32)
-                    .background(transaction.kind.amountColor.opacity(0.14), in: .circle)
-                    .accessibilityHidden(true)
+                // Decoration only: dropped at accessibility sizes to leave room for text.
+                if !typeSize.isAccessibilitySize {
+                    Image(systemName: transaction.kind.symbol)
+                        .font(.footnote.weight(.bold))
+                        .foregroundStyle(transaction.kind.amountColor)
+                        .frame(width: 32, height: 32)
+                        .background(transaction.kind.amountColor.opacity(0.14), in: .circle)
+                        .accessibilityHidden(true)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(transaction.description)

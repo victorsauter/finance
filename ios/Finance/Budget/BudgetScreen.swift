@@ -7,6 +7,8 @@ struct BudgetScreen: View {
     @State private var selectedCategory: ExpenseCategory.ID?
     @State private var isPickingMonth = false
     @State private var isConfirmingReset = false
+    @State private var isAddingExpense = false
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let month = store.month
@@ -15,33 +17,20 @@ struct BudgetScreen: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
+                    if typeSize.isAccessibilitySize {
+                        // The toolbar has no room for the month at these sizes.
+                        Text(month.name)
+                            .font(.largeTitle.bold())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                    }
                     if store.isVirtual {
                         VirtualMonthNotice(sourceName: store.seedSourceName)
                     }
                     SummaryCard(summary: summary)
                     AllocationCard(month: month, selection: $selectedCategory)
 
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Planned expenses")
-                                .font(.title3.bold())
-                            Text(Money.format(summary.expenseCents))
-                                .font(.subheadline)
-                                .monospacedDigit()
-                                .foregroundStyle(.secondary)
-                                .contentTransition(.numericText())
-                        }
-                        Spacer(minLength: 8)
-                        NavigationLink {
-                            EditPlanScreen()
-                        } label: {
-                            Label("Edit plan", systemImage: "slider.horizontal.3")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .buttonStyle(.glass)
-                    }
-                    .padding(.top, 8)
-                    .padding(.horizontal, 4)
+                    plannedHeader(total: summary.expenseCents)
 
                     if month.expenseCategories.isEmpty {
                         ContentUnavailableView(
@@ -73,7 +62,8 @@ struct BudgetScreen: View {
             }
             .background(PageBackground())
             .scrollEdgeEffectStyle(.hard, for: .top)
-            .navigationTitle(month.name)
+            .navigationTitle(typeSize.isAccessibilitySize ? "" : month.name)
+            .navigationBarTitleDisplayMode(typeSize.isAccessibilitySize ? .inline : .large)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu("More", systemImage: "ellipsis") {
@@ -89,12 +79,51 @@ struct BudgetScreen: View {
                 }
                 MonthToolbar(isPickingMonth: $isPickingMonth)
             }
+            .safeAreaInset(edge: .bottom) {
+                AddExpenseBar { isAddingExpense = true }
+                    .frame(minHeight: 52)
+                    .glassEffect(.regular.interactive(), in: .capsule)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 4)
+            }
+            .sheet(isPresented: $isAddingExpense) {
+                AddExpenseSheet()
+                    .presentationDetents([.medium])
+            }
             .monthPickerSheet(isPresented: $isPickingMonth)
             .resetMonthDialog(isPresented: $isConfirmingReset)
             .onChange(of: store.selected) { selectedCategory = nil }
             .sensoryFeedback(.selection, trigger: store.selected)
             .sensoryFeedback(.impact(weight: .light), trigger: expanded)
         }
+    }
+
+    private func plannedHeader(total: Int) -> some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
+
+        return layout {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Planned expenses")
+                    .font(.title3.bold())
+                Text(Money.format(total))
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+            }
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
+            NavigationLink {
+                EditPlanScreen()
+            } label: {
+                Label("Edit plan", systemImage: "slider.horizontal.3")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .buttonStyle(.glass)
+        }
+        .padding(.top, 8)
+        .padding(.horizontal, 4)
     }
 }
 

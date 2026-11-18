@@ -143,10 +143,10 @@ struct EntrySheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", systemImage: "xmark") { dismiss() }
+                    Button("Cancel", role: .cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(entry.isNew ? "Add" : "Save", systemImage: "checkmark", action: save)
+                    Button(entry.isNew ? "Add" : "Save", role: .confirm, action: save)
                         .disabled(!canSave)
                 }
             }

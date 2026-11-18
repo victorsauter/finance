@@ -10,6 +10,8 @@ struct CategoryCard: View {
     let isHighlighted: Bool
     let onToggle: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     private var share: Double {
         incomeCents == 0 ? 0 : Double(category.totalCents) / Double(incomeCents)
     }
@@ -17,32 +19,45 @@ struct CategoryCard: View {
     var body: some View {
         VStack(spacing: 14) {
             Button(action: onToggle) {
-                HStack(spacing: 12) {
-                    Image(systemName: symbol)
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
-                        .background(color.gradient, in: .rect(cornerRadius: 12))
+                // At accessibility sizes the amount gets its own line so it never wraps.
+                let layout = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+                    : AnyLayout(HStackLayout(spacing: 12))
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(category.name)
-                            .font(.headline)
-                        Text("\(Money.percent(share)) of income")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                layout {
+                    HStack(spacing: 12) {
+                        Image(systemName: symbol)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                            .background(color.gradient, in: .rect(cornerRadius: 12))
+                            .accessibilityHidden(true)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(category.name)
+                                .font(.headline)
+                            Text("\(Money.percent(share)) of income")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
-                    Spacer(minLength: 8)
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
 
-                    Text(Money.format(category.totalCents))
-                        .font(.body.weight(.semibold))
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
+                    HStack(spacing: 12) {
+                        Text(Money.format(category.totalCents))
+                            .font(.body.weight(.semibold))
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .contentTransition(.numericText())
 
-                    Image(systemName: "chevron.down")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        Image(systemName: "chevron.down")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                            .accessibilityHidden(true)
+                    }
                 }
                 .contentShape(.rect)
             }
@@ -55,12 +70,9 @@ struct CategoryCard: View {
             if isExpanded {
                 VStack(spacing: 10) {
                     ForEach(category.items) { item in
-                        HStack {
-                            Text(item.name)
-                            Spacer()
+                        LabeledContent(item.name) {
                             Text(Money.format(item.amountCents))
                                 .monospacedDigit()
-                                .foregroundStyle(.secondary)
                         }
                         .font(.subheadline)
                     }
