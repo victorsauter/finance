@@ -10,4 +10,5 @@ class ResizeObserverStub implements ResizeObserver {
 globalThis.ResizeObserver = ResizeObserverStub
 
 // jsdom does not implement scrolling; the router calls it on navigation.
-window.scrollTo = () => {}
+// Node-environment tests (tools/mcp) have no window.
+if (typeof window !== 'undefined') window.scrollTo = () => {}
