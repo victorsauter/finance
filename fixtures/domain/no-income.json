@@ -1,0 +1,87 @@
+{
+  "description": "Zero income: savings rate is 0, usage percent is null without a planned transfer.",
+  "budgetMonth": {
+    "id": "00000000-0000-4000-8000-000000000019",
+    "year": 2026,
+    "month": 4,
+    "name": "April 2026",
+    "incomes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000020",
+        "name": "Example salary",
+        "amountCents": 0,
+        "sortOrder": 0
+      }
+    ],
+    "accounts": [
+      {
+        "id": "00000000-0000-4000-8000-000000000017",
+        "name": "Everyday account",
+        "plannedTransferCents": 0,
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000018",
+        "name": "Empty account",
+        "plannedTransferCents": 0,
+        "sortOrder": 1
+      }
+    ],
+    "expenseCategories": [
+      {
+        "id": "00000000-0000-4000-8000-000000000021",
+        "name": "Housing",
+        "accountId": "00000000-0000-4000-8000-000000000017",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000022",
+            "name": "Rent",
+            "amountCents": 90000,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000023",
+        "name": "Misc",
+        "accountId": null,
+        "items": [],
+        "sortOrder": 1
+      }
+    ],
+    "createdAt": "2026-01-15T09:00:00.000Z",
+    "updatedAt": "2026-01-15T09:00:00.000Z"
+  },
+  "expected": {
+    "summary": {
+      "incomeCents": 0,
+      "expenseCents": 90000,
+      "remainingCents": -90000,
+      "transferCents": 0,
+      "unallocatedIncomeCents": 0,
+      "savingsRate": 0,
+      "accountAllocations": [
+        {
+          "accountId": "00000000-0000-4000-8000-000000000017",
+          "accountName": "Everyday account",
+          "transferCents": 0,
+          "usageCents": 90000,
+          "balanceCents": -90000
+        },
+        {
+          "accountId": "00000000-0000-4000-8000-000000000018",
+          "accountName": "Empty account",
+          "transferCents": 0,
+          "usageCents": 0,
+          "balanceCents": 0
+        }
+      ],
+      "unassignedExpenseCents": 0
+    },
+    "accountUsagePercent": [
+      null,
+      null
+    ]
+  }
+}
