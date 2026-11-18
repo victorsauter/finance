@@ -1,12 +1,9 @@
 # ADR 0002: Wealth tracking and storage direction
 
-- Status: Accepted for the storage direction (section 2) and the sync engine
-  (section 3): **PowerSync**, chosen by the owner on 2026-11-18 after the spike.
-  Still open: where PowerSync runs (self-hosted or PowerSync Cloud) and the
-  other open questions below. The wealth domain model (section 1) and
-  household sharing (section 5) remain a direction, decided in their own issues.
-  No production migration has run; it needs the owner's explicit go-ahead.
-- Date: 2026-11-17, spike report and decision added 2026-11-18
+- Status: Proposed. The spike is done (see "Spike report" below); the engine
+  choice is the owner's and is still open. Proposal: move to Accepted with
+  PowerSync, self-hosted, once the owner confirms.
+- Date: 2026-11-17, spike report added 2026-11-18
 - Deciders: project owner
 
 ## Context
@@ -259,15 +256,10 @@ is an outbox over `supabase-js` and Dexie on the web, and over `supabase-swift`
 | Conflict handling | Last write wins by default; compare-before-write is possible | Whatever is written; the same compare-before-write is the natural choice |
 | Main risk | A new service to keep running and upgrade; untested in Safari | Two sync engines to get right and keep identical, with the classic pull-cursor pitfalls |
 
-### Decision
+### Recommendation
 
-The owner chose **PowerSync** on 2026-11-18. Hosting is not decided: the
-recommendation is to self-host it on the Kubernetes cluster; PowerSync Cloud is
-the alternative. The hand-written outbox is the fallback if PowerSync fails in
-a part the spike did not cover (Safari, the Swift SDK on a device, the direct
-database connection on the production Supabase plan).
-
-The recommendation that led to it: PowerSync passed every
+Adopt PowerSync, self-hosted, and keep the hand-written outbox as the fallback
+if the owner does not want another service to run. PowerSync passed every
 criterion, all its parts are now Apache-2.0, and it removes the part that would
 otherwise be written twice and is hardest to get right on the iPhone: the
 download path and the local queue.
@@ -334,8 +326,9 @@ truth until the app switches.
 
 ## Open questions
 
-- Where does PowerSync run: self-hosted on the Kubernetes cluster (recommended)
-  or PowerSync Cloud? The engine itself is decided.
+- Which engine: PowerSync (recommended, see the spike report) or the hand-written
+  outbox? If PowerSync: self-hosted on the Kubernetes cluster, or PowerSync
+  Cloud?
 - Is replacing Dexie by SQLite in the browser acceptable (about 590 KiB gzip
   more, Safari untested)?
 - When two devices change the same value offline, is "last one wins, with a

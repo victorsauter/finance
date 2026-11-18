@@ -20,11 +20,8 @@ de l'épargne et des investissements dans le temps.
 - En cours : application iPhone native en SwiftUI, voir
   [ADR 0003](./adr/0003-native-ios-client.md). Le web reste l'interface pour
   l'ordinateur.
-- En cours : socle de données (#10), voir
-  [ADR 0002](./adr/0002-wealth-tracking.md). Le moteur de synchronisation est
-  choisi : PowerSync. Les tables par entité, la conversion réversible et le test
-  sont faits sur un Supabase local ; rien n'est encore migré en production.
-- Ensuite : patrimoine, une fois le socle de données en service.
+- Ensuite : patrimoine et stockage, voir [ADR 0002](./adr/0002-wealth-tracking.md)
+  (statut : proposé, rien n'est décidé).
 
 ### Les phases
 
@@ -43,12 +40,9 @@ flowchart LR
 
 ### Ce qu'il faut décider
 
-- Décidé : le moteur de synchronisation est PowerSync (test réussi, voir
-  l'ADR 0002).
-- L'hébergement de PowerSync : sur ton Kubernetes (recommandé, sans coût en
-  plus) ou PowerSync Cloud (gratuit avec mise en pause, sinon 49 $ par mois).
-- Le feu vert pour la migration en production, qui ne se fait pas sans ton
-  accord explicite.
+- Le moteur de synchronisation (PowerSync, Electric, TanStack DB, ou rien), à
+  trancher après un test court. Tant que ce n'est pas fait, on peut démarrer le
+  patrimoine à petite échelle dans le document actuel, avec un risque de reprise.
 - La licence du projet, à choisir avant d'ouvrir le dépôt.
 
 ### Compromis
@@ -64,7 +58,7 @@ flowchart LR
 ## Technical roadmap (English)
 
 Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
-[ADR 0002 (wealth tracking and storage, Accepted with PowerSync)](./adr/0002-wealth-tracking.md) and
+[ADR 0002 (wealth tracking, Proposed)](./adr/0002-wealth-tracking.md) and
 [ADR 0003 (native iPhone client)](./adr/0003-native-ios-client.md).
 
 | Phase | Item | Issue | Depends on |
@@ -72,9 +66,7 @@ Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
 | 0 | UI rebuild (Tailwind v4, shadcn/ui, TanStack Router, dnd-kit, TanStack Table), yearly month calendar | done (#12) | none |
 | iOS | Native iPhone app: foundations and v1 screens on local data (ADR 0003) | in progress under `ios/` | none |
 | iOS | Connect the iPhone app to Supabase (sign-in, sync, offline) | not started | #10 |
-| 1 | Normalized data model and sync engine (ADR 0002): entity tables, reversible conversion and PowerSync spike | done locally ([#10](https://github.com/victorsauter/finance/issues/10)) | UI rebuild merged |
-| 1 | Pre-rollout follow-ups: deterministic ids, atomic import/restore function, compare-before-write, sign-out rule | not started | #10 |
-| 1 | PowerSync hosting, production migration and web client switch | not started, needs the owner's go-ahead | hosting decision, follow-ups above |
+| 1 | Normalized data model and sync engine (ADR 0002) | [#10](https://github.com/victorsauter/finance/issues/10) | UI rebuild merged |
 | 2 | Net worth: accounts, valuations, evolution chart | [#4](https://github.com/victorsauter/finance/issues/4) | #10 (or a spike inside the current document) |
 | 2 | Investments tracking | [#5](https://github.com/victorsauter/finance/issues/5) | #4 |
 | 2 | Loans: schedule, remaining capital, total cost | [#6](https://github.com/victorsauter/finance/issues/6) | #4 |
@@ -86,8 +78,7 @@ Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
 ### Notes
 
 - Phases are an ordering of dependencies, not dates.
-- The spike report and the decision (PowerSync) are in ADR 0002. Hosting is
-  still open, and the rollout and rollback steps are listed there and in the
-  pull request for #10.
+- Issue #10 should produce a spike report in ADR 0002 before the status moves
+  from Proposed to Accepted.
 - No personal data, balances or real bank statements belong in issues, docs or
   test fixtures; importers use synthetic files.
