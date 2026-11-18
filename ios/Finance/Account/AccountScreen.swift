@@ -2,7 +2,7 @@ import FinanceKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Backup, restore and reset. Data stays on this iPhone until sync arrives.
+/// Cloud sync sign-in, backup, restore and reset.
 struct AccountScreen: View {
     private struct PendingImport {
         let fileName: String
@@ -19,6 +19,7 @@ struct AccountScreen: View {
     }
 
     @Environment(BudgetStore.self) private var store
+    @Environment(SyncController.self) private var sync
     @State private var isImporting = false
     @State private var isExporting = false
     @State private var exportDocument: BackupDocument?
@@ -32,6 +33,8 @@ struct AccountScreen: View {
                 if let notice {
                     Section { noticeView(notice) }
                 }
+
+                CloudSyncSection()
 
                 Section("On this iPhone") {
                     LabeledContent("Budget months", value: store.data.budgetMonths.count.formatted())
@@ -49,13 +52,16 @@ struct AccountScreen: View {
                     Text("Backups are the JSON files of the web app's Backup page, so data moves both ways.")
                 }
 
-                Section {
-                    Button("Reset to sample data", systemImage: "arrow.counterclockwise", role: .destructive) {
-                        isConfirmingReset = true
+                // Hidden while signed in so sample data can never reach the cloud.
+                if !sync.isSignedIn {
+                    Section {
+                        Button("Reset to sample data", systemImage: "arrow.counterclockwise", role: .destructive) {
+                            isConfirmingReset = true
+                        }
+                        .tint(.red)
+                    } footer: {
+                        Text("Signed out, your budget is stored on this iPhone only. Export a backup now and then, and before resetting.")
                     }
-                    .tint(.red)
-                } footer: {
-                    Text("Your budget is stored on this iPhone only until sync arrives. Export a backup now and then, and before resetting.")
                 }
             }
             .navigationTitle("Account")
@@ -78,7 +84,7 @@ struct AccountScreen: View {
             ) { pending in
                 Button("Replace data", role: .destructive) { replace(with: pending) }
             } message: { pending in
-                Text("\(count(pending.data.budgetMonths.count, "budget")) and \(count(pending.data.importedTransactions.count, "transaction")) from \u{201C}\(pending.fileName)\u{201D} will replace what is on this iPhone. Export a backup first if you want to keep it.")
+                Text("\(count(pending.data.budgetMonths.count, "budget")) and \(count(pending.data.importedTransactions.count, "transaction")) from \u{201C}\(pending.fileName)\u{201D} will replace what is on this iPhone\(sync.isSignedIn ? " and in the cloud" : ""). Export a backup first if you want to keep it.")
             }
             .confirmationDialog("Reset to sample data?", isPresented: $isConfirmingReset, titleVisibility: .visible) {
                 Button("Reset to sample data", role: .destructive) {

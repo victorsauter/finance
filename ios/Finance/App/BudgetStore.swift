@@ -13,7 +13,8 @@ struct UndoNotice: Identifiable {
 }
 
 /// Holds the budget document, saves it after every change and exposes the
-/// selected month to the screens. No network.
+/// selected month to the screens. Sync reads and replaces the document
+/// through `SyncController`; this type itself has no network.
 ///
 /// Any month of 2000-2200 can be selected. One with no saved data is
 /// "virtual": it shows a copy of the nearest earlier month and is only added
@@ -28,6 +29,12 @@ final class BudgetStore {
     private var virtual: BudgetMonth?
     private let repository: any BudgetRepository
     private var lastSave: Task<Void, Never>?
+    /// True when this launch created the sample data because nothing was saved.
+    private(set) var seededSample = false
+    /// Called after each change made on this iPhone (not after a download).
+    @ObservationIgnored var onLocalEdit: (() -> Void)?
+    /// Called after the user resets to sample data.
+    @ObservationIgnored var onResetToSample: (() -> Void)?
 
     init(data: AppData, repository: any BudgetRepository) {
         self.data = data
@@ -49,7 +56,8 @@ final class BudgetStore {
             return BudgetStore(data: saved, repository: repository)
         }
         let store = BudgetStore(data: seed(), repository: repository)
-        store.persist()
+        store.seededSample = true
+        store.persist(isLocalEdit: false)
         return store
     }
 
@@ -252,17 +260,40 @@ final class BudgetStore {
 
     /// Replaces everything with an already validated document.
     func replaceData(with replacement: AppData) {
+        replace(with: replacement)
+        persist()
+    }
+
+    func resetToSampleData() {
+        replace(with: SampleData.appData())
+        persist(isLocalEdit: false)
+        onResetToSample?()
+    }
+
+    /// Applies the cloud copy if the document still equals `expected` (always
+    /// when nil). Checked and replaced in one main-actor step, so an edit made
+    /// during the download is never lost.
+    func applyRemote(_ remote: AppData, ifCurrentIs expected: AppData?) -> Bool {
+        if let expected, expected != data { return false }
+        if remote != data {
+            let keepSelection = selected
+            replace(with: remote)
+            // Stay on the month being viewed when it still exists.
+            if remote.budgetMonths.contains(where: { $0.year == keepSelection.year && $0.month == keepSelection.month }) {
+                select(year: keepSelection.year, month: keepSelection.month)
+            }
+        }
+        persist(isLocalEdit: false)
+        return true
+    }
+
+    private func replace(with replacement: AppData) {
         data = replacement
         undoNotice = nil
         let start = replacement.budgetMonths.first { $0.id == replacement.settings.activeBudgetMonthId }
             ?? replacement.budgetMonths.first
         let target = start.map { YearMonth(year: $0.year, month: $0.month) } ?? Self.currentMonth()
         select(year: target.year, month: target.month)
-        persist()
-    }
-
-    func resetToSampleData() {
-        replaceData(with: SampleData.appData())
     }
 
     func backupDocument() throws -> BackupDocument {
@@ -271,7 +302,8 @@ final class BudgetStore {
 
     /// Saves the latest document. Saves run one after another so an older
     /// snapshot can never overwrite a newer one.
-    private func persist() {
+    private func persist(isLocalEdit: Bool = true) {
+        if isLocalEdit { onLocalEdit?() }
         let snapshot = data
         let previous = lastSave
         lastSave = Task { [repository] in

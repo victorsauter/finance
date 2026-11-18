@@ -42,6 +42,9 @@ public enum SyncStatus: Equatable, Sendable {
     case conflict(CloudSummary?)
     /// The cloud copy cannot be read by this app: nothing is written.
     case blocked(String)
+
+    /// The reason given with `unsynced` while there is no network.
+    public static let offlineReason = "You are offline."
 }
 
 /// How the engine reads and replaces the document the screens edit.
@@ -221,7 +224,7 @@ public actor SyncEngine {
         let hasChanges = state.pending != nil || isDirty(document)
         guard isOnline else {
             let linked = state.linkedUserId == userId
-            await publish(linked && hasChanges ? .unsynced("You are offline.") : .offline)
+            await publish(linked && hasChanges ? .unsynced(SyncStatus.offlineReason) : .offline)
             return
         }
         do {

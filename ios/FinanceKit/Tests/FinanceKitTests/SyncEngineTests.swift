@@ -280,7 +280,7 @@ private func makeEngine(
         await engine.setOnline(false)
         await local.edit { $0.budgetMonths[0].name = "Edited offline" }
         await engine.sync()
-        #expect(await engine.status == .unsynced("You are offline."))
+        #expect(await engine.status == .unsynced(SyncStatus.offlineReason))
         #expect(await cloud.saveCalls.isEmpty)
 
         await engine.setOnline(true)
