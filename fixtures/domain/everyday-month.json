@@ -1,0 +1,146 @@
+{
+  "description": "Two accounts, one category with no account, fractional savings rate.",
+  "budgetMonth": {
+    "id": "00000000-0000-4000-8000-000000000003",
+    "year": 2026,
+    "month": 3,
+    "name": "March 2026",
+    "incomes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000004",
+        "name": "Example salary",
+        "amountCents": 320000,
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000005",
+        "name": "Side gig",
+        "amountCents": 45050,
+        "sortOrder": 1
+      }
+    ],
+    "accounts": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "name": "Everyday account",
+        "plannedTransferCents": 200000,
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "name": "Savings account",
+        "plannedTransferCents": 100000,
+        "sortOrder": 1
+      }
+    ],
+    "expenseCategories": [
+      {
+        "id": "00000000-0000-4000-8000-000000000006",
+        "name": "Housing",
+        "accountId": "00000000-0000-4000-8000-000000000001",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "name": "Rent",
+            "amountCents": 115000,
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "name": "Power",
+            "amountCents": 6200,
+            "sortOrder": 1
+          }
+        ],
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000009",
+        "name": "Food",
+        "accountId": "00000000-0000-4000-8000-000000000001",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "name": "Groceries",
+            "amountCents": 42050,
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000011",
+            "name": "Lunches",
+            "amountCents": 9600,
+            "sortOrder": 1
+          }
+        ],
+        "sortOrder": 1
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000012",
+        "name": "Saving goals",
+        "accountId": "00000000-0000-4000-8000-000000000002",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000013",
+            "name": "Holiday fund",
+            "amountCents": 25000,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 2
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000014",
+        "name": "Pocket money",
+        "accountId": null,
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000015",
+            "name": "Cinema",
+            "amountCents": 3333,
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000016",
+            "name": "Books",
+            "amountCents": 1999,
+            "sortOrder": 1
+          }
+        ],
+        "sortOrder": 3
+      }
+    ],
+    "createdAt": "2026-01-15T09:00:00.000Z",
+    "updatedAt": "2026-01-15T09:00:00.000Z"
+  },
+  "expected": {
+    "summary": {
+      "incomeCents": 365050,
+      "expenseCents": 203182,
+      "remainingCents": 161868,
+      "transferCents": 300000,
+      "unallocatedIncomeCents": 65050,
+      "savingsRate": 44.34132310642378,
+      "accountAllocations": [
+        {
+          "accountId": "00000000-0000-4000-8000-000000000001",
+          "accountName": "Everyday account",
+          "transferCents": 200000,
+          "usageCents": 172850,
+          "balanceCents": 27150
+        },
+        {
+          "accountId": "00000000-0000-4000-8000-000000000002",
+          "accountName": "Savings account",
+          "transferCents": 100000,
+          "usageCents": 25000,
+          "balanceCents": 75000
+        }
+      ],
+      "unassignedExpenseCents": 5332
+    },
+    "accountUsagePercent": [
+      86,
+      25
+    ]
+  }
+}

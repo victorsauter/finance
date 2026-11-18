@@ -1,0 +1,136 @@
+{
+  "description": "Expenses above income and above transfers; usage percent rounding at 12.5 and 33.3.",
+  "budgetMonth": {
+    "id": "00000000-0000-4000-8000-000000000027",
+    "year": 2026,
+    "month": 5,
+    "name": "May 2026",
+    "incomes": [
+      {
+        "id": "00000000-0000-4000-8000-000000000028",
+        "name": "Example salary",
+        "amountCents": 300000,
+        "sortOrder": 0
+      }
+    ],
+    "accounts": [
+      {
+        "id": "00000000-0000-4000-8000-000000000024",
+        "name": "Everyday account",
+        "plannedTransferCents": 80000,
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000025",
+        "name": "Tiny account",
+        "plannedTransferCents": 800,
+        "sortOrder": 1
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000026",
+        "name": "Third account",
+        "plannedTransferCents": 300,
+        "sortOrder": 2
+      }
+    ],
+    "expenseCategories": [
+      {
+        "id": "00000000-0000-4000-8000-000000000029",
+        "name": "Housing",
+        "accountId": "00000000-0000-4000-8000-000000000024",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000030",
+            "name": "Rent",
+            "amountCents": 90000,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 0
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000031",
+        "name": "Gadgets",
+        "accountId": "00000000-0000-4000-8000-000000000025",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000032",
+            "name": "Cable",
+            "amountCents": 100,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 1
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000033",
+        "name": "Gifts",
+        "accountId": "00000000-0000-4000-8000-000000000026",
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000034",
+            "name": "Card",
+            "amountCents": 100,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 2
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000035",
+        "name": "Travel",
+        "accountId": null,
+        "items": [
+          {
+            "id": "00000000-0000-4000-8000-000000000036",
+            "name": "Trip",
+            "amountCents": 250000,
+            "sortOrder": 0
+          }
+        ],
+        "sortOrder": 3
+      }
+    ],
+    "createdAt": "2026-01-15T09:00:00.000Z",
+    "updatedAt": "2026-01-15T09:00:00.000Z"
+  },
+  "expected": {
+    "summary": {
+      "incomeCents": 300000,
+      "expenseCents": 340200,
+      "remainingCents": -40200,
+      "transferCents": 81100,
+      "unallocatedIncomeCents": 218900,
+      "savingsRate": -13.4,
+      "accountAllocations": [
+        {
+          "accountId": "00000000-0000-4000-8000-000000000024",
+          "accountName": "Everyday account",
+          "transferCents": 80000,
+          "usageCents": 90000,
+          "balanceCents": -10000
+        },
+        {
+          "accountId": "00000000-0000-4000-8000-000000000025",
+          "accountName": "Tiny account",
+          "transferCents": 800,
+          "usageCents": 100,
+          "balanceCents": 700
+        },
+        {
+          "accountId": "00000000-0000-4000-8000-000000000026",
+          "accountName": "Third account",
+          "transferCents": 300,
+          "usageCents": 100,
+          "balanceCents": 200
+        }
+      ],
+      "unassignedExpenseCents": 250000
+    },
+    "accountUsagePercent": [
+      113,
+      13,
+      33
+    ]
+  }
+}

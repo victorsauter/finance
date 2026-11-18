@@ -1,7 +1,9 @@
+import FinanceKit
 import SwiftUI
 
 struct CategoryCard: View {
     let category: ExpenseCategory
+    let symbol: String
     let color: Color
     let incomeCents: Int
     let isExpanded: Bool
@@ -16,7 +18,7 @@ struct CategoryCard: View {
         VStack(spacing: 14) {
             Button(action: onToggle) {
                 HStack(spacing: 12) {
-                    Image(systemName: category.symbol)
+                    Image(systemName: symbol)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(width: 40, height: 40)

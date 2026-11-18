@@ -1,0 +1,223 @@
+{
+  "description": "Whole document with two months and two imported transactions; expected has one entry per month, in order.",
+  "appData": {
+    "schemaVersion": 2,
+    "settings": {
+      "activeBudgetMonthId": "00000000-0000-4000-8000-000000000044"
+    },
+    "budgetMonths": [
+      {
+        "id": "00000000-0000-4000-8000-000000000038",
+        "year": 2026,
+        "month": 1,
+        "name": "January 2026",
+        "incomes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000039",
+            "name": "Example salary",
+            "amountCents": 280000,
+            "sortOrder": 0
+          }
+        ],
+        "accounts": [
+          {
+            "id": "00000000-0000-4000-8000-000000000037",
+            "name": "Everyday account",
+            "plannedTransferCents": 150000,
+            "sortOrder": 0
+          }
+        ],
+        "expenseCategories": [
+          {
+            "id": "00000000-0000-4000-8000-000000000040",
+            "name": "Housing",
+            "accountId": "00000000-0000-4000-8000-000000000037",
+            "items": [
+              {
+                "id": "00000000-0000-4000-8000-000000000041",
+                "name": "Rent",
+                "amountCents": 100000,
+                "sortOrder": 0
+              }
+            ],
+            "sortOrder": 0
+          }
+        ],
+        "createdAt": "2026-01-15T09:00:00.000Z",
+        "updatedAt": "2026-01-15T09:00:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000044",
+        "year": 2026,
+        "month": 2,
+        "name": "February 2026",
+        "incomes": [
+          {
+            "id": "00000000-0000-4000-8000-000000000045",
+            "name": "Example salary",
+            "amountCents": 280000,
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000046",
+            "name": "Refund",
+            "amountCents": 1234,
+            "sortOrder": 1
+          }
+        ],
+        "accounts": [
+          {
+            "id": "00000000-0000-4000-8000-000000000042",
+            "name": "Everyday account",
+            "plannedTransferCents": 150000,
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000043",
+            "name": "Savings account",
+            "plannedTransferCents": 50000,
+            "sortOrder": 1
+          }
+        ],
+        "expenseCategories": [
+          {
+            "id": "00000000-0000-4000-8000-000000000047",
+            "name": "Housing",
+            "accountId": "00000000-0000-4000-8000-000000000042",
+            "items": [
+              {
+                "id": "00000000-0000-4000-8000-000000000048",
+                "name": "Rent",
+                "amountCents": 100000,
+                "sortOrder": 0
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000049",
+                "name": "Power",
+                "amountCents": 5555,
+                "sortOrder": 1
+              }
+            ],
+            "sortOrder": 0
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000050",
+            "name": "Saving goals",
+            "accountId": "00000000-0000-4000-8000-000000000043",
+            "items": [
+              {
+                "id": "00000000-0000-4000-8000-000000000051",
+                "name": "Rainy day",
+                "amountCents": 50000,
+                "sortOrder": 0
+              }
+            ],
+            "sortOrder": 1
+          }
+        ],
+        "createdAt": "2026-01-15T09:00:00.000Z",
+        "updatedAt": "2026-01-15T09:00:00.000Z"
+      }
+    ],
+    "importedTransactions": [
+      {
+        "id": "00000000-0000-4000-8000-000000000052",
+        "provider": "revolut-csv",
+        "sourceKey": "example-key-1",
+        "sourceReference": null,
+        "importBatchId": "00000000-0000-4000-8000-000000000053",
+        "sourceFileName": "example-statement.csv",
+        "bookingDate": "2026-02-03",
+        "startedAt": "2026-02-03 08:15:00",
+        "completedAt": "2026-02-03 08:15:02",
+        "description": "Example grocery store",
+        "amountCents": -4250,
+        "feeCents": 0,
+        "balanceCents": 125000,
+        "currency": "EUR",
+        "transactionType": "CARD_PAYMENT",
+        "product": "Current",
+        "kind": "expense",
+        "categoryId": "00000000-0000-4000-8000-000000000047",
+        "importedAt": "2026-02-04T10:00:00.000Z"
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000054",
+        "provider": "revolut-csv",
+        "sourceKey": "example-key-2",
+        "sourceReference": "REF-0002",
+        "importBatchId": "00000000-0000-4000-8000-000000000055",
+        "sourceFileName": "example-statement.csv",
+        "bookingDate": "2026-02-05",
+        "startedAt": null,
+        "completedAt": null,
+        "description": "Example refund",
+        "amountCents": 1234,
+        "feeCents": 25,
+        "balanceCents": null,
+        "currency": "EUR",
+        "transactionType": null,
+        "product": null,
+        "kind": "income",
+        "categoryId": null,
+        "importedAt": "2026-02-06T10:00:00.000Z"
+      }
+    ]
+  },
+  "expected": [
+    {
+      "summary": {
+        "incomeCents": 280000,
+        "expenseCents": 100000,
+        "remainingCents": 180000,
+        "transferCents": 150000,
+        "unallocatedIncomeCents": 130000,
+        "savingsRate": 64.28571428571429,
+        "accountAllocations": [
+          {
+            "accountId": "00000000-0000-4000-8000-000000000037",
+            "accountName": "Everyday account",
+            "transferCents": 150000,
+            "usageCents": 100000,
+            "balanceCents": 50000
+          }
+        ],
+        "unassignedExpenseCents": 0
+      },
+      "accountUsagePercent": [
+        67
+      ]
+    },
+    {
+      "summary": {
+        "incomeCents": 281234,
+        "expenseCents": 155555,
+        "remainingCents": 125679,
+        "transferCents": 200000,
+        "unallocatedIncomeCents": 81234,
+        "savingsRate": 44.688408940597505,
+        "accountAllocations": [
+          {
+            "accountId": "00000000-0000-4000-8000-000000000042",
+            "accountName": "Everyday account",
+            "transferCents": 150000,
+            "usageCents": 105555,
+            "balanceCents": 44445
+          },
+          {
+            "accountId": "00000000-0000-4000-8000-000000000043",
+            "accountName": "Savings account",
+            "transferCents": 50000,
+            "usageCents": 50000,
+            "balanceCents": 0
+          }
+        ],
+        "unassignedExpenseCents": 0
+      },
+      "accountUsagePercent": [
+        70,
+        100
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import FinanceKit
 import SwiftUI
 
 struct BudgetScreen: View {
@@ -28,9 +29,10 @@ struct BudgetScreen: View {
                     .padding(.top, 8)
                     .padding(.horizontal, 4)
 
-                    ForEach(Array(month.categories.enumerated()), id: \.element.id) { index, category in
+                    ForEach(Array(month.expenseCategories.enumerated()), id: \.element.id) { index, category in
                         CategoryCard(
                             category: category,
+                            symbol: CategorySymbol.symbol(for: category, at: index),
                             color: Theme.categoryColor(at: index),
                             incomeCents: summary.incomeCents,
                             isExpanded: expanded.contains(category.id),
@@ -48,7 +50,7 @@ struct BudgetScreen: View {
                 .padding(.bottom, 24)
             }
             .background(PageBackground())
-            .navigationTitle(month.title)
+            .navigationTitle(month.name)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button("Previous month", systemImage: "chevron.left") { step(-1) }
@@ -72,5 +74,8 @@ struct BudgetScreen: View {
 
 #Preview {
     BudgetScreen()
-        .environment(BudgetStore())
+        .environment(BudgetStore(
+            data: SampleData.appData(),
+            repository: InMemoryBudgetRepository()
+        ))
 }

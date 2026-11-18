@@ -1,3 +1,4 @@
+import FinanceKit
 import SwiftUI
 
 struct AddExpenseSheet: View {
@@ -19,7 +20,7 @@ struct AddExpenseSheet: View {
                 TextField("Amount in euros", text: $amount)
                     .keyboardType(.decimalPad)
                 Picker("Category", selection: $categoryID) {
-                    ForEach(store.month.categories) { category in
+                    ForEach(store.month.expenseCategories) { category in
                         Text(category.name).tag(Optional(category.id))
                     }
                 }
@@ -36,7 +37,7 @@ struct AddExpenseSheet: View {
                 }
             }
             .onAppear {
-                categoryID = store.month.categories.first?.id
+                categoryID = store.month.expenseCategories.first?.id
                 nameIsFocused = true
             }
         }
