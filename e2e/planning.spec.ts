@@ -73,14 +73,14 @@ test('adds rows to every list and keeps them after reload', async ({ page }) => 
 
 test('reorders a list by dragging with the mouse', async ({ page }) => {
   await addSecondIncome(page)
-  expect(await values(incomeNames(page))).toEqual(['Main income', 'Side income'])
+  await expect.poll(() => values(incomeNames(page))).toEqual(['Main income', 'Side income'])
 
   await dragHandle(page, 'Side income', incomeNames(page).first(), 'above')
   await expect.poll(() => values(incomeNames(page))).toEqual(['Side income', 'Main income'])
 
   await expectSaved(page)
   await page.reload()
-  expect(await values(incomeNames(page))).toEqual(['Side income', 'Main income'])
+  await expect.poll(() => values(incomeNames(page))).toEqual(['Side income', 'Main income'])
 })
 
 test('reorders a list with the keyboard', async ({ page }) => {
@@ -109,7 +109,7 @@ test('reorders a list with the keyboard', async ({ page }) => {
   await expect(announcement('Side income is over position 2 of 2.')).toBeAttached()
   await page.keyboard.press('Escape')
   await expect(announcement('Reordering cancelled. Side income did not move.')).toBeAttached()
-  expect(await values(incomeNames(page))).toEqual(['Side income', 'Main income'])
+  await expect.poll(() => values(incomeNames(page))).toEqual(['Side income', 'Main income'])
 })
 
 test('reorders through the row menu', async ({ page }) => {
@@ -130,7 +130,7 @@ test('reorders expense categories', async ({ page }) => {
   await page.getByRole('button', { name: 'Add category' }).click()
   await commit(page.getByRole('textbox', { name: 'Category name 2' }), 'Leisure')
   const names = page.getByRole('textbox', { name: /^Category name/ })
-  expect(await values(names)).toEqual(['Housing', 'Leisure'])
+  await expect.poll(() => values(names)).toEqual(['Housing', 'Leisure'])
 
   await page.getByRole('button', { name: 'Actions for Leisure' }).click()
   await page.getByRole('menuitem', { name: 'Move up' }).click()
@@ -145,7 +145,7 @@ test('deletes an income at once and brings it back with Undo', async ({ page }) 
   // No confirmation for a single row: it is gone, with an Undo toast.
   await expect(page.getByRole('alertdialog')).toHaveCount(0)
   await expect(incomeNames(page)).toHaveCount(1)
-  expect(await values(incomeNames(page))).toEqual(['Side income'])
+  await expect.poll(() => values(incomeNames(page))).toEqual(['Side income'])
   const toast = page.getByRole('listitem').filter({ hasText: 'Income deleted' })
   await expect(toast).toBeVisible()
 
@@ -172,7 +172,7 @@ test('asks before deleting an account and keeps it when cancelled', async ({ pag
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Delete account' }).click()
   await expect(accountNames(page)).toHaveCount(1)
-  expect(await values(accountNames(page))).toEqual(['Main account'])
+  await expect.poll(() => values(accountNames(page))).toEqual(['Main account'])
 })
 
 test('asks before deleting a category with its expenses', async ({ page }) => {
