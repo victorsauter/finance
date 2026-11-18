@@ -1,3 +1,4 @@
+import FinanceKit
 import SwiftUI
 
 struct SummaryCard: View {
@@ -20,7 +21,7 @@ struct SummaryCard: View {
             HStack(spacing: 10) {
                 metric("Income", Money.format(summary.incomeCents))
                 metric("Planned", Money.format(summary.expenseCents))
-                metric("Saved", Money.percent(summary.savingsRate))
+                metric("Saved", Money.percent(summary.savingsRate / 100))
             }
         }
         .foregroundStyle(.white)

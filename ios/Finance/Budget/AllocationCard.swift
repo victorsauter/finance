@@ -1,4 +1,5 @@
 import Charts
+import FinanceKit
 import SwiftUI
 
 /// Donut of where the month's income goes. Touch a slice to read it.
@@ -8,16 +9,16 @@ struct AllocationCard: View {
     @State private var touchedAmount: Int?
 
     private struct Slice: Identifiable {
-        let id: UUID
+        let id: String
         let name: String
         let cents: Int
         let color: Color
     }
 
-    private static let leftoverID = UUID()
+    private static let leftoverID = "leftover"
 
     private var slices: [Slice] {
-        var result = month.categories.enumerated().map { index, category in
+        var result = month.expenseCategories.enumerated().map { index, category in
             Slice(
                 id: category.id, name: category.name,
                 cents: category.totalCents, color: Theme.categoryColor(at: index)
