@@ -4,3 +4,5 @@ DerivedData/
 *.xcuserstate
 .build/
 .swiftpm/
+# Developer overrides, e.g. a local Supabase stack (see Config/Local.xcconfig.example).
+Config/Local.xcconfig

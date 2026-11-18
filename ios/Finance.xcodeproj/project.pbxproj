@@ -8,10 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		F1AA00000000000000000012 /* FinanceKit in Frameworks */ = {isa = PBXBuildFile; productRef = F1AA00000000000000000013 /* FinanceKit */; };
+		F1AA00000000000000000014 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = F1AA00000000000000000016 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		F1AA00000000000000000001 /* Finance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Finance.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1AA00000000000000000017 /* Supabase.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Supabase.xcconfig; sourceTree = "<group>"; };
+		F1AA00000000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -28,6 +31,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F1AA00000000000000000012 /* FinanceKit in Frameworks */,
+				F1AA00000000000000000014 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,8 +42,18 @@
 			isa = PBXGroup;
 			children = (
 				F1AA00000000000000000002 /* Finance */,
+				F1AA00000000000000000019 /* Config */,
 				F1AA00000000000000000005 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		F1AA00000000000000000019 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				F1AA00000000000000000017 /* Supabase.xcconfig */,
+				F1AA00000000000000000018 /* Info.plist */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		F1AA00000000000000000005 /* Products */ = {
@@ -71,6 +85,7 @@
 			name = Finance;
 			packageProductDependencies = (
 				F1AA00000000000000000013 /* FinanceKit */,
+				F1AA00000000000000000016 /* Supabase */,
 			);
 			productName = Finance;
 			productReference = F1AA00000000000000000001 /* Finance.app */;
@@ -101,6 +116,7 @@
 			mainGroup = F1AA00000000000000000004;
 			packageReferences = (
 				F1AA00000000000000000011 /* XCLocalSwiftPackageReference "FinanceKit" */,
+				F1AA00000000000000000015 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
@@ -167,11 +183,13 @@
 		};
 		F1AA0000000000000000000F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F1AA00000000000000000017 /* Supabase.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Finance;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -193,11 +211,13 @@
 		};
 		F1AA00000000000000000010 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F1AA00000000000000000017 /* Supabase.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Finance;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -247,10 +267,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		F1AA00000000000000000015 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.55.7;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		F1AA00000000000000000013 /* FinanceKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FinanceKit;
+		};
+		F1AA00000000000000000016 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1AA00000000000000000015 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

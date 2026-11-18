@@ -1,0 +1,6 @@
+// Copy to Local.xcconfig (git-ignored) to point a build at a local Supabase
+// stack started with `supabase start` from the repository root. The simulator
+// reaches the Mac at 127.0.0.1. Use the publishable key printed by
+// `supabase status`. OTP emails appear in the local mail catcher (Mailpit).
+SUPABASE_URL = http:/$()/127.0.0.1:54321
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_REPLACE_WITH_LOCAL_KEY
