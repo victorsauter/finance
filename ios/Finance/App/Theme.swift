@@ -14,6 +14,8 @@ extension Color {
 enum Theme {
     static let primary = Color(hex: 0x526FFF)
     static let saving = Color(hex: 0x35B995)
+    /// Over-budget amounts and expenses.
+    static let expense = Color(hex: 0xE5486B)
 
     static let brand = LinearGradient(
         colors: [Color(hex: 0x4F7CFF), Color(hex: 0x765EFF), Color(hex: 0x9558F6)],

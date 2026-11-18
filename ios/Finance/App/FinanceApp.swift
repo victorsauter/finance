@@ -64,33 +64,15 @@ struct RootView: View {
                 BudgetScreen()
             }
             Tab("Transactions", systemImage: "arrow.left.arrow.right") {
-                PlaceholderScreen(title: "Transactions", symbol: "arrow.left.arrow.right")
+                TransactionsScreen()
             }
             Tab("Account", systemImage: "person.crop.circle") {
-                PlaceholderScreen(title: "Account", symbol: "person.crop.circle")
+                AccountScreen()
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory {
-            Button {
-                isAddingExpense = true
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(Theme.primary)
-                    Text("Add an expense")
-                        .fontWeight(.medium)
-                    Spacer()
-                    Text(Money.format(store.month.summary.remainingCents))
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-                }
-                .padding(.horizontal, 16)
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
+            AddExpenseAccessory { isAddingExpense = true }
         }
         .sheet(isPresented: $isAddingExpense) {
             AddExpenseSheet()
@@ -99,18 +81,50 @@ struct RootView: View {
     }
 }
 
-struct PlaceholderScreen: View {
-    let title: String
-    let symbol: String
+/// The bar above the tabs. Next to a minimised tab bar there is only room
+/// for the icon and the amount, so the label drops out when it does not fit.
+private struct AddExpenseAccessory: View {
+    @Environment(BudgetStore.self) private var store
+    let action: () -> Void
 
     var body: some View {
-        NavigationStack {
-            ContentUnavailableView(
-                "Not in this prototype",
-                systemImage: symbol,
-                description: Text("Only the Budget tab is built.")
-            )
-            .navigationTitle(title)
+        let left = Money.format(store.month.summary.remainingCents)
+
+        Button(action: action) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    icon
+                    Text("Add an expense")
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                        .fixedSize()
+                    Spacer(minLength: 8)
+                    amount(left)
+                }
+                HStack(spacing: 10) {
+                    icon
+                    amount(left)
+                }
+            }
+            .padding(.horizontal, 16)
+            .contentShape(.rect)
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add an expense")
+        .accessibilityValue("\(left) left")
+    }
+
+    private var icon: some View {
+        Image(systemName: "plus.circle.fill")
+            .font(.title3)
+            .foregroundStyle(Theme.primary)
+    }
+
+    private func amount(_ text: String) -> some View {
+        Text(text)
+            .monospacedDigit()
+            .lineLimit(1)
+            .foregroundStyle(.secondary)
+            .contentTransition(.numericText())
     }
 }
