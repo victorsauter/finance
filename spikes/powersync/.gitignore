@@ -1,0 +1,12 @@
+node_modules/
+# Local client databases created by the scenarios
+data/
+*.db
+*.db-wal
+*.db-shm
+# Generated at runtime by scripts/setup-db.ts (random local passwords)
+.env
+# Throwaway web bundle measurement
+web-size/dist/
+web-size/node_modules/
+results/

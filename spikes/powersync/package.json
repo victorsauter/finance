@@ -1,0 +1,32 @@
+{
+  "name": "finance-spike-powersync",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Time-boxed spike: PowerSync as the sync engine for Finance (local only).",
+  "scripts": {
+    "setup-db": "tsx scripts/setup-db.ts",
+    "teardown-db": "tsx scripts/teardown-db.ts",
+    "up": "tsx scripts/up.ts",
+    "down": "docker compose down -v",
+    "scenarios": "tsx src/run-all.ts",
+    "web-size": "tsx scripts/web-size.ts"
+  },
+  "dependencies": {
+    "@powersync/common": "2.5.0",
+    "@powersync/node": "1.3.1",
+    "@supabase/supabase-js": "2.119.0",
+    "better-sqlite3": "13.2.0",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@powersync/web": "2.7.0",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.2.0": true,
+    "esbuild@0.28.2": true
+  }
+}
