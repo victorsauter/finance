@@ -71,11 +71,16 @@ struct AllocationCard: View {
                     Text(selected?.name ?? "Planned")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                     Text(Money.format(selected?.cents ?? month.summary.expenseCents))
                         .font(.title2.bold())
                         .monospacedDigit()
                         .contentTransition(.numericText())
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                 }
+                .frame(maxWidth: 130)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             }
             .frame(height: 220)
             .sensoryFeedback(.selection, trigger: selection)
