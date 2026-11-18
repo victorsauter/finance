@@ -183,10 +183,13 @@ describe('BudgetEditor', () => {
     expect(action.label).toBe('Undo')
     action.onClick()
 
-    await waitFor(() =>
-      expect(incomeNames()).toEqual(['Salary', 'Bonus', 'Gift']),
-    )
-    expect(latest.incomes.map((income) => income.sortOrder)).toEqual([0, 1, 2])
+    // `latest` is updated by an effect, so it can lag behind the DOM.
+    await waitFor(() => {
+      expect(incomeNames()).toEqual(['Salary', 'Bonus', 'Gift'])
+      expect(latest.incomes.map((income) => income.sortOrder)).toEqual([
+        0, 1, 2,
+      ])
+    })
   })
 
   it('asks for confirmation before deleting an account', async () => {
