@@ -30,12 +30,37 @@ share the same Supabase back-end.
 | Repository | One repository, app under `ios/` | Web tooling ignores `ios/`; Swift has its own checks. |
 | Domain logic | Mirrored in Swift for live totals | Kept equal to TypeScript by shared JSON fixtures read by both test suites. |
 | Heavy logic | One place, web and server side | CSV import, loan schedules and net-worth series are not ported to Swift. |
-| Local data on iPhone | A local store behind a repository protocol | Replaced by the sync engine chosen in [ADR 0002](./0002-wealth-tracking.md). |
+| Local data on iPhone | `budget.json` behind a repository protocol, synced as the web's single document | Same `finance_documents` row and `save_finance_document` RPC as the web; see "Sync" below. |
 | Distribution | Free Apple personal team for now | Reinstall every 7 days; no TestFlight or push notifications. |
 
-The native app connects to Supabase only after the normalized data model and
-sync engine of ADR 0002 (issue #10) are in place. Until then it works on data
-stored on the phone.
+### Sync (updated 2026-11-18)
+
+The iPhone app syncs exactly like the web app today: one JSON document per user
+(`AppData` schema v2) in `public.finance_documents`, read under row-level
+security and written only through `save_finance_document` (compare-and-swap on
+an integer revision, idempotent on a mutation id). Sign-in uses an email code,
+as on the web; supabase-swift keeps the session in the Keychain. Signed out,
+the app works on the phone's data only.
+
+The rules mirror `CloudBudgetRepository` on the web and live in FinanceKit's
+`SyncEngine`, behind a `RemoteDocumentStore` protocol so they are tested
+without a network:
+
+- pull when nothing local is unsynced; otherwise push after a short pause,
+  retrying with the same mutation id until the server acknowledges it;
+- on a revision conflict, the user keeps one whole copy ("Keep this iPhone's
+  copy" or "Keep the cloud copy"), as on the web;
+- on first sign-in, an existing cloud copy replaces untouched sample data, and
+  otherwise only after an explicit choice; sample data is never uploaded over
+  a cloud copy without that choice;
+- a cloud copy with a newer schema, or one that fails to decode, is never
+  written.
+
+This was chosen over waiting for ADR 0002 because the app has a single user,
+used on one device at a time, and no hosted service beyond Supabase is wanted.
+PowerSync was spiked and declined because it needs a hosted sync service.
+Entity tables remain a later step, needed for a growing wealth history and for
+household sharing (ADR 0002); when they land, the iPhone moves with the web.
 
 ## Alternatives considered
 
@@ -52,8 +77,11 @@ stored on the phone.
 - **Flutter or Kotlin Multiplatform.** Rejected: no benefit for an iPhone-only
   app, and neither renders with the system's own controls.
 - **SwiftData with iCloud sync.** Rejected: the web app could not read the data.
-- **Starting the native app on the single-document format.** Rejected: its
-  sync code would be thrown away when ADR 0002 lands.
+- **Waiting for the entity tables and a sync engine of ADR 0002.** First
+  chosen, then reversed: with one user on one device at a time, the existing
+  single document already gives safe sync and offline edits. PowerSync was
+  spiked and declined because it needs a hosted service. The single-document
+  sync code is small and will be replaced when entity tables land.
 
 ## Consequences
 
@@ -67,7 +95,9 @@ Negative and risks:
 
 - Two front-ends to maintain, and budget calculations exist twice. Shared
   fixtures reduce, but do not remove, the risk of drift.
-- Until the app is connected, edits made on the iPhone do not reach the web.
+- Sync is whole-document: two devices editing at the same time end in a
+  conflict where one whole copy wins. Acceptable for one person on one device
+  at a time; not suitable for household sharing.
 - The local toolchain is Xcode 26.3 on macOS 15, which does not officially
   support iOS 27 devices. It works today; if it stops, the fix is macOS 26.6 or
   later with Xcode 27.
