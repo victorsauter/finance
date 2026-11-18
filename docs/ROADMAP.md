@@ -20,6 +20,13 @@ de l'épargne et des investissements dans le temps.
 - En cours : application iPhone native en SwiftUI, voir
   [ADR 0003](./adr/0003-native-ios-client.md). Le web reste l'interface pour
   l'ordinateur.
+- Étape 4 (en relecture) : l'iPhone se connecte à Supabase exactement comme le
+  web, avec le même document unique par compte. Connexion par code reçu par
+  e-mail, modifications hors ligne envoyées au retour du réseau, et en cas de
+  conflit on garde une copie entière (celle de l'iPhone ou celle du cloud).
+  Pas de moteur de synchronisation ni de service hébergé en plus : un seul
+  utilisateur, un appareil à la fois. PowerSync a été testé puis écarté car il
+  demande un hébergement.
 - Ensuite : patrimoine et stockage, voir [ADR 0002](./adr/0002-wealth-tracking.md)
   (statut : proposé, rien n'est décidé).
 
@@ -29,8 +36,8 @@ de l'épargne et des investissements dans le temps.
 flowchart LR
   P0["Phase 0 · Interface web<br/>(fait)"] --> P1["Phase 1 · Socle de données<br/>#10"]
   P0 --> N["iPhone · Écrans SwiftUI<br/>(en cours)"]
-  N --> C["iPhone · Branchement<br/>Supabase"]
-  P1 --> C
+  N --> C["iPhone · Branchement Supabase<br/>document unique (en relecture)"]
+  C -.-> P1
   P1 --> P2["Phase 2 · Patrimoine<br/>#4 #5 #6 #7"]
   P1 --> P3["Phase 3 · Foyer<br/>#9"]
   P0 --> I["Imports banques<br/>#8"]
@@ -40,9 +47,9 @@ flowchart LR
 
 ### Ce qu'il faut décider
 
-- Le moteur de synchronisation (PowerSync, Electric, TanStack DB, ou rien), à
-  trancher après un test court. Tant que ce n'est pas fait, on peut démarrer le
-  patrimoine à petite échelle dans le document actuel, avec un risque de reprise.
+- Pour l'iPhone, c'est tranché : pas de moteur de synchronisation, le document
+  unique suffit. Les tables par entité restent une étape ultérieure, utile pour
+  l'historique du patrimoine et le partage à deux (ADR 0002).
 - La licence du projet, à choisir avant d'ouvrir le dépôt.
 
 ### Compromis
@@ -65,7 +72,7 @@ Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
 | --- | --- | --- | --- |
 | 0 | UI rebuild (Tailwind v4, shadcn/ui, TanStack Router, dnd-kit, TanStack Table), yearly month calendar | done (#12) | none |
 | iOS | Native iPhone app: foundations and v1 screens on local data (ADR 0003) | in progress under `ios/` | none |
-| iOS | Connect the iPhone app to Supabase (sign-in, sync, offline) | not started | #10 |
+| iOS | Stage 4: connect the iPhone app to Supabase on the single JSON document (email code sign-in, offline edits, whole-copy conflict choice); no sync engine | in review (`feat/ios-supabase`) | v1 screens |
 | 1 | Normalized data model and sync engine (ADR 0002) | [#10](https://github.com/victorsauter/finance/issues/10) | UI rebuild merged |
 | 2 | Net worth: accounts, valuations, evolution chart | [#4](https://github.com/victorsauter/finance/issues/4) | #10 (or a spike inside the current document) |
 | 2 | Investments tracking | [#5](https://github.com/victorsauter/finance/issues/5) | #4 |
@@ -78,6 +85,9 @@ Direction and rationale: [ADR 0001 (UI stack)](./adr/0001-ui-stack.md),
 ### Notes
 
 - Phases are an ordering of dependencies, not dates.
+- The iPhone no longer waits for #10: it uses the same single document as the
+  web. Entity tables remain a later step for wealth history and household
+  sharing; the iPhone moves with the web when they land.
 - Issue #10 should produce a spike report in ADR 0002 before the status moves
   from Proposed to Accepted.
 - No personal data, balances or real bank statements belong in issues, docs or

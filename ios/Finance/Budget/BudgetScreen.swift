@@ -17,6 +17,7 @@ struct BudgetScreen: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 16) {
+                    SyncBadge()
                     if typeSize.isAccessibilitySize {
                         // The toolbar has no room for the month at these sizes.
                         Text(month.name)
@@ -146,9 +147,8 @@ private struct VirtualMonthNotice: View {
 }
 
 #Preview {
+    let store = BudgetStore(data: SampleData.appData(), repository: InMemoryBudgetRepository())
     BudgetScreen()
-        .environment(BudgetStore(
-            data: SampleData.appData(),
-            repository: InMemoryBudgetRepository()
-        ))
+        .environment(store)
+        .environment(SyncController(store: store, config: nil, stateStore: InMemorySyncStateStore()))
 }

@@ -151,7 +151,7 @@
         "bookingDate": "2026-02-05",
         "startedAt": null,
         "completedAt": null,
-        "description": "Example refund",
+        "description": "Example refund — café/épicerie \"Lumen\"",
         "amountCents": 1234,
         "feeCents": 25,
         "balanceCents": null,

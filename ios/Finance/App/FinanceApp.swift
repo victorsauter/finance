@@ -5,12 +5,13 @@ import SwiftUI
 struct FinanceApp: App {
     private enum Phase {
         case loading
-        case ready(BudgetStore)
+        case ready(BudgetStore, SyncController)
         case failed(String)
     }
 
     private let repository = FileBudgetRepository()
     @State private var phase = Phase.loading
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -18,9 +19,14 @@ struct FinanceApp: App {
                 switch phase {
                 case .loading:
                     ProgressView()
-                case .ready(let store):
+                case .ready(let store, let sync):
                     RootView()
                         .environment(store)
+                        .environment(sync)
+                        .onChange(of: scenePhase) { _, phase in
+                            // Pull on return, push before the app is suspended.
+                            if phase != .inactive { sync.syncNow() }
+                        }
                 case .failed(let message):
                     ContentUnavailableView {
                         Label("Could not open your budget", systemImage: "exclamationmark.triangle")
@@ -42,7 +48,10 @@ struct FinanceApp: App {
     private func load() async {
         phase = .loading
         do {
-            phase = .ready(try await BudgetStore.load(from: repository))
+            let store = try await BudgetStore.load(from: repository)
+            let sync = SyncController(store: store)
+            await sync.start(seededSample: store.seededSample)
+            phase = .ready(store, sync)
         } catch {
             phase = .failed(error.localizedDescription)
         }
@@ -55,6 +64,8 @@ struct FinanceApp: App {
 }
 
 struct RootView: View {
+    @Environment(SyncController.self) private var sync
+
     var body: some View {
         TabView {
             Tab("Budget", systemImage: "chart.pie.fill") {
@@ -68,5 +79,11 @@ struct RootView: View {
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
+        .sheet(item: Binding(
+            get: { sync.decision },
+            set: { if $0 == nil { sync.isDecisionPostponed = true } }
+        )) { decision in
+            SyncDecisionSheet(decision: decision)
+        }
     }
 }

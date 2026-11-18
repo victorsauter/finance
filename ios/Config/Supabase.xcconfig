@@ -1,0 +1,12 @@
+// Public Supabase settings of the production project: the same values as
+// VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in netlify.toml. The
+// publishable key is meant to ship in clients; row-level security protects
+// the data. Never put a service-role or secret key here.
+//
+// `//` starts a comment in xcconfig files, hence `$()` inside the URL.
+SUPABASE_URL = https:/$()/dqaoxjedszryzgiojreb.supabase.co
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_lwX7fKZLngOt7nWjftxoyA__DX-KSuo
+
+// Optional, git-ignored overrides, e.g. a local Supabase stack. See
+// Local.xcconfig.example.
+#include? "Local.xcconfig"

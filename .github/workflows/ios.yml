@@ -24,6 +24,15 @@ jobs:
       - name: Test FinanceKit
         working-directory: ios/FinanceKit
         run: swift test
+      # supabase-swift is a remote package: fetch exactly the versions pinned in
+      # Package.resolved, and fail if the project asks for anything else.
+      - name: Resolve Swift packages
+        working-directory: ios
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project Finance.xcodeproj \
+            -onlyUsePackageVersionsFromResolvedFile \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm"
       - name: Build the app for the simulator
         working-directory: ios
         run: |
@@ -32,5 +41,7 @@ jobs:
             -scheme Finance \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/derived-data" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm" \
+            -onlyUsePackageVersionsFromResolvedFile \
             CODE_SIGNING_ALLOWED=NO \
             build
