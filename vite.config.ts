@@ -64,7 +64,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
-    exclude: ['e2e/**', 'node_modules/**', 'dist/**', '.claude/**'],
+    // spikes/ holds throwaway experiments with their own dependencies.
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**', '.claude/**', 'spikes/**'],
     coverage: {
       reporter: ['text', 'html'],
     },

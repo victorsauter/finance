@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/service-schema@1.28.3/json-schema/powersync-config.json
+# PowerSync service configuration for the local Finance spike.
+# Only PS_* environment variables can be substituted with !env.
+
+telemetry:
+  # Local spike: no anonymous usage reporting to PowerSync.
+  disable_telemetry_sharing: true
+
+replication:
+  connections:
+    - type: postgresql
+      # powersync_role on the local Supabase `postgres` database (see scripts/setup-db.ts).
+      uri: !env PS_DATA_SOURCE_URI
+      sslmode: disable
+
+storage:
+  # Postgres bucket storage (storage version 2), in its own database on the same server.
+  type: postgresql
+  uri: !env PS_STORAGE_SOURCE_URI
+  sslmode: disable
+
+port: !env PS_PORT
+
+sync_config:
+  path: sync-config.yaml
+
+client_auth:
+  # Verify the local Supabase Auth access tokens (ES256) against its JWKS through Kong.
+  # `supabase: true` is not used: its auto-detection only works for hosted
+  # project connection strings (docs: configuration/auth/supabase-auth).
+  jwks_uri: !env PS_JWKS_URL
+  audience: ["authenticated"]
+
+system:
+  logging:
+    level: info
+    format: text

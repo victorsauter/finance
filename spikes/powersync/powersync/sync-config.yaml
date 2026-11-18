@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/service-sync-rules@latest/schema/sync_rules.json
+#
+# Sync Streams for the Finance entity tables.
+#
+# PowerSync replicates with a BYPASSRLS role, so these queries are the ONLY read
+# barrier between users. They mirror the select policies of
+# supabase/migrations/20261118120000_finance_entities.sql, which are all
+# `owner_id = auth.uid()`: every query filters on `owner_id = auth.user_id()`
+# (the `sub` claim of the Supabase access token).
+#
+# Soft-deleted rows (deleted_at is not null) are synced on purpose: other
+# clients need to learn about the delete. The app filters them out in queries.
+
+config:
+  edition: 3
+  # Default for Postgres would be microseconds (`...ss.ssssss`). Milliseconds match
+  # the app's `toISOString()` document format. See README, scenario 6.
+  timestamp_max_precision: milliseconds
+
+streams:
+  owned_rows:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM budget_months WHERE owner_id = auth.user_id()
+      - SELECT * FROM budget_incomes WHERE owner_id = auth.user_id()
+      - SELECT * FROM budget_accounts WHERE owner_id = auth.user_id()
+      - SELECT * FROM budget_expense_categories WHERE owner_id = auth.user_id()
+      - SELECT * FROM budget_expense_items WHERE owner_id = auth.user_id()
+      - SELECT * FROM imported_transactions WHERE owner_id = auth.user_id()
+      - SELECT * FROM user_settings WHERE owner_id = auth.user_id()
